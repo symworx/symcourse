@@ -9,7 +9,7 @@ SRC="${ROOT}/site"
 OUT="${ROOT}/_site"
 LECTURES_BUILT="${ROOT}/lectures/_built"
 
-REPO="${GITHUB_REPOSITORY:-uncg-msia/__COURSE_NAME__}"
+REPO="${GITHUB_REPOSITORY:-__GITHUB_REPOSITORY_DEFAULT__}"
 BRANCH="${PAGES_BLOB_BRANCH:-${GITHUB_REF_NAME:-main}}"
 if [[ "${BRANCH}" == *'/'* ]]; then
   BRANCH="main"

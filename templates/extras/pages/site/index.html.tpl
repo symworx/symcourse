@@ -8,9 +8,9 @@
 <body>
   <main>
     <h1>__COURSE_CODE__ — __COURSE_TITLE__</h1>
-    <p>Study / self-check hub. Graded work is submitted on Canvas.</p>
-    <p>Module pages are not populated yet. Course materials live in the
-      <a href="https://github.com/uncg-msia/__COURSE_NAME__">course repository</a>.</p>
+    <p>Study / self-check hub. Graded work is submitted on __LMS__.</p>
+    <p>Module pages are not populated yet. Course materials live in
+      <a href="__REPO_WEB__">the course repository</a>.</p>
   </main>
 </body>
 </html>

@@ -1,18 +1,24 @@
 # Contributing
 
-Author on `develop`. This repository is private.
+Author on `develop`.
 
-`symcourse` scaffolds **course shape** (layout, runtime, identity). Agent
-packs, adapters, and `docs/slos.md` come from
+`symcourse` scaffolds **course shape** (layout, runtime, identity overlays).
+Agent packs, adapters, and `docs/slos.md` come from
 [csymd/symkit](https://github.com/csymd/symkit). Do not pass `--scaffold`
 to `symkit` on a tree this tool created.
 
+`catalog.yaml` lists shapes, runtimes, orgs, and presets. Add a new org by
+dropping identity templates under `templates/orgs/<id>/` and registering
+them in the catalog. Do not hardcode new ids in `makecourse.sh`.
+
 ```bash
-./cli/symcourse new ian-6xx \
-  --course-number "IAN 6xx" \
-  --course-title "Course title"
+./cli/symcourse list
+./cli/symcourse new bio-101 \
+  --course-number "BIO 101" \
+  --course-title "Intro Biology" \
+  --no-agents
 ./tests/smoke.sh
 ```
 
-Keep package `AGENTS.md` templates short. Do not commit secrets, credentials,
+Keep course `AGENTS.md` templates short. Do not commit secrets, credentials,
 or restricted data.

@@ -1,0 +1,14 @@
+# BEGIN symcourse runtime uv
+__pycache__/
+*.py[cod]
+.venv/
+env/
+venv/
+__pypackages__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.devcontainer/.env
+.devcontainer/.cache/
+# END symcourse runtime uv

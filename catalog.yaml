@@ -1,0 +1,136 @@
+# Copyright (c) 2026, PalEm Dynamics LLC
+# Licensed under the Apache License, Version 2.0.
+#
+# Source of truth for shapes, runtimes, org overlays, and extras.
+# Do not hardcode those ids in makecourse.sh.
+
+version: 1
+
+kit:
+  name: symcourse
+  description: Scaffold course repositories (layout, runtime, identity)
+
+defaults:
+  shape: course
+  runtime: none
+  org: none
+  lms: the course LMS
+
+presets:
+  msia:
+    description: UNCG MSIA / IAN course master
+    shape: course
+    runtime: uv
+    org: msia
+
+shapes:
+  course:
+    description: Assignments, lectures, docs, public sample data
+    dirs:
+      - assignments
+      - data/public
+      - docs/modules
+      - docs/projects
+      - docs/admin
+      - lectures
+    keep:
+      - data/public/.gitkeep
+    files:
+      - src: shapes/course/README.md.tpl
+        dest: README.md
+      - src: shapes/course/QUICKSTART.md.tpl
+        dest: QUICKSTART.md
+      - src: shapes/course/CONTRIBUTING.md.tpl
+        dest: CONTRIBUTING.md
+      - src: shapes/course/AGENTS.md.tpl
+        dest: AGENTS.md
+      - src: shapes/course/gitignore.tpl
+        dest: .gitignore
+      - src: shapes/course/docs/ai-what-to-expect.md.tpl
+        dest: docs/ai-what-to-expect.md
+      - src: shapes/course/docs/modules/README.md.tpl
+        dest: docs/modules/README.md
+      - src: shapes/course/docs/projects/README.md.tpl
+        dest: docs/projects/README.md
+      - src: shapes/course/docs/admin/README.md.tpl
+        dest: docs/admin/README.md
+      - src: shapes/course/docs/admin/PLANNING.md.tpl
+        dest: docs/admin/PLANNING.md
+      - src: shapes/course/assignments/README.md.tpl
+        dest: assignments/README.md
+      - src: shapes/course/data/README.md.tpl
+        dest: data/README.md
+      - src: shapes/course/lectures/README.md.tpl
+        dest: lectures/README.md
+      - src: shapes/course/lectures/_quarto.yml.tpl
+        dest: lectures/_quarto.yml
+
+runtimes:
+  none:
+    description: No language runtime (no Containerfile / pyproject)
+  uv:
+    description: Python via uv, Containerfile, devcontainer, learner-agent hook
+    dirs:
+      - scripts
+      - .devcontainer
+    files:
+      - src: runtimes/uv/pyproject.toml.tpl
+        dest: pyproject.toml
+      - src: runtimes/uv/Containerfile.tpl
+        dest: Containerfile
+      - src: runtimes/uv/devcontainer.json.tpl
+        dest: .devcontainer/devcontainer.json
+      - src: runtimes/uv/QUICKSTART.md.tpl
+        dest: QUICKSTART.md
+    copies:
+      - src: runtimes/uv/scripts/container-entrypoint.sh
+        dest: scripts/container-entrypoint.sh
+        mode: exec
+      - src: runtimes/uv/scripts/install-learner-agents.sh
+        dest: scripts/install-learner-agents.sh
+        mode: exec
+    gitignore_append: runtimes/uv/gitignore.fragment
+
+orgs:
+  none:
+    description: LMS-neutral identity (shape files use __LMS__)
+  msia:
+    description: UNCG MSIA conventions (Canvas, org remotes, reusable release)
+    vars:
+      LMS: Canvas
+      GITHUB_ORG: uncg-msia
+      GITHUB_PAGES_HOST: uncg-msia.github.io
+      FACULTY_DOCS: https://github.com/uncg-msia/msia-faculty
+    dirs:
+      - .github/workflows
+    files:
+      - src: orgs/msia/README.md.tpl
+        dest: README.md
+      - src: orgs/msia/QUICKSTART.md.tpl
+        dest: QUICKSTART.md
+      - src: orgs/msia/CONTRIBUTING.md.tpl
+        dest: CONTRIBUTING.md
+      - src: orgs/msia/AGENTS.md.tpl
+        dest: AGENTS.md
+      - src: orgs/msia/docs/ai-what-to-expect.md.tpl
+        dest: docs/ai-what-to-expect.md
+    copies:
+      - src: orgs/msia/release.yml
+        dest: .github/workflows/release.yml
+
+extras:
+  pages:
+    description: HTML study hub and GitHub Pages workflow
+    dirs:
+      - site
+      - scripts
+      - .github/workflows
+    files:
+      - src: extras/pages/site/README.md.tpl
+        dest: site/README.md
+      - src: extras/pages/site/index.html.tpl
+        dest: site/index.html
+      - src: extras/pages/scripts/build-pages.sh.tpl
+        dest: scripts/build-pages.sh
+      - src: extras/pages/.github/workflows/pages.yml.tpl
+        dest: .github/workflows/pages.yml

@@ -1,7 +1,7 @@
 [project]
 name = "__COURSE_NAME__"
 version = "0.0.0"
-description = "__COURSE_CODE__ — __COURSE_TITLE__ (UNCG ILRS / MSIA)"
+description = "__COURSE_CODE__ — __COURSE_TITLE__"
 requires-python = ">=3.13"
 dependencies = [
     "matplotlib",

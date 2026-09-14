@@ -74,4 +74,4 @@ Ask the instructor or TA early—especially about data and disclosure—before a
 
 ---
 
-*Org default template lives in [etools](https://github.com/uncg-msia/etools) (`scripts/makecourse/templates/docs/ai-what-to-expect.md.tpl`). Courses may ship a localized copy.*
+*Org default from [csymd/symcourse](https://github.com/csymd/symcourse) (`--org msia`). Courses may ship a localized copy.*

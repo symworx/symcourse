@@ -1,9 +1,9 @@
 # Deploy the HTML study hub (site/) to GitHub Pages.
-# Source of truth for narrative browsing; graded work stays on Canvas.
+# Source of truth for narrative browsing; graded work stays on __LMS__.
 #
 # After first enable in repo Settings → Pages → Source: GitHub Actions,
 # student URL is typically:
-#   https://uncg-msia.github.io/__COURSE_NAME__/
+#   __PAGES_URL__
 
 name: Deploy GitHub Pages
 

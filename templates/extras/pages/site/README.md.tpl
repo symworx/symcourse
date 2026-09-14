@@ -6,8 +6,8 @@ Optional **narrative** parallel to the markdown module spine.
 
 After Pages is enabled and the workflow has run on `main`:
 
-**https://uncg-msia.github.io/__COURSE_NAME__/**
+**__PAGES_URL__**
 
-That site is **study / self-check only**. Graded work → **Canvas**.
+That site is **study / self-check only**. Graded work → **__LMS__**.
 
 Local source: this folder. Build/deploy: [`scripts/build-pages.sh`](../scripts/build-pages.sh) + [`.github/workflows/pages.yml`](../.github/workflows/pages.yml).

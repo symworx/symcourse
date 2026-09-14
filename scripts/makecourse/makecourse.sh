@@ -2,23 +2,31 @@
 # Copyright (c) 2026, PalEm Dynamics LLC
 # Licensed under the Apache License, Version 2.0.
 #
-# Scaffold a course master from the IAN 630 *shape* (runtime, layout,
-# release wiring). Does not copy course content. Nested `symkit install`
-# adds the teaching instructor pack and docs/slos.md when symkit is on PATH.
+# Scaffold a course repo from catalog.yaml (shape + runtime + org overlay).
+# Nested `symkit install` adds the teaching instructor pack and docs/slos.md
+# when symkit is on PATH.
 set -euo pipefail
 
 usage() {
   cat <<'EOF'
 Usage: makecourse.sh <course-name> [outdir] --course-number TEXT --course-title TEXT [options]
 
-  course-name   Repo / directory name, e.g. ian-630 or ian-6x0
+  course-name   Repo / directory name, e.g. bio-101 or ian-6xx
   outdir        Destination (default: ./<course-name> under cwd)
 
 Prefer: ./cli/symcourse new <course-name> [outdir] …
 
 Required:
-  --course-number TEXT   Catalog / display code, e.g. "IAN 630" (alias: --code)
+  --course-number TEXT   Catalog / display code, e.g. "BIO 101" (alias: --code)
   --course-title TEXT    Human title (alias: --title)
+
+Layout (catalog.yaml; defaults: shape=course runtime=none org=none):
+  --shape ID         Folder spine (default: course)
+  --runtime ID       none | uv (default: none)
+  --org ID           none | msia (default: none)
+  --preset ID        Named combo (msia = course + uv + msia). Flags override.
+  --lms TEXT         Overrides org LMS (default: "the course LMS")
+  --github-org TEXT  GitHub org for clone URLs (msia defaults to uncg-msia)
 
 Options:
   --with-pages     Include GitHub Pages hub (site/ + workflow)
@@ -26,11 +34,10 @@ Options:
   --adapters SET   Passed to nested symkit (grok, claude, codex, all, none)
   -h, --help       Show this help
 
-Existing files are left alone. Safe to re-run on a repo that already
-has a README. Requires python3; uv is used to write uv.lock when present.
-Nested symkit (if present) is invoked with --yes and without --scaffold.
+Existing files are left alone. Requires python3; uv writes uv.lock when the
+uv runtime is selected and uv is on PATH. Nested symkit is optional.
 
-Templates live next to this script in templates/.
+List ids: ./cli/symcourse list
 EOF
 }
 
@@ -39,13 +46,23 @@ warn() { printf 'warning: %s\n' "$*" >&2; }
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEMPLATE_DIR="${SCRIPT_DIR}/templates"
+ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+CATALOG="${ROOT}/catalog.yaml"
+TEMPLATE_DIR="${ROOT}/templates"
+CATALOG_PY="${SCRIPT_DIR}/catalog.py"
+[[ -f "${CATALOG}" ]] || die "catalog.yaml not found at ${CATALOG}"
 [[ -d "${TEMPLATE_DIR}" ]] || die "templates not found at ${TEMPLATE_DIR}"
 
 COURSE_NAME=""
 OUTDIR=""
 COURSE_TITLE=""
 COURSE_CODE=""
+SHAPE=""
+RUNTIME=""
+ORG=""
+PRESET=""
+LMS=""
+GITHUB_ORG=""
 WITH_PAGES=0
 WITH_AGENTS=1
 ADAPTERS=""
@@ -65,6 +82,36 @@ while [[ $# -gt 0 ]]; do
     --code|--course-number)
       [[ $# -ge 2 ]] || die "$1 needs a value"
       COURSE_CODE="$2"
+      shift 2
+      ;;
+    --shape)
+      [[ $# -ge 2 ]] || die "$1 needs a value"
+      SHAPE="$2"
+      shift 2
+      ;;
+    --runtime)
+      [[ $# -ge 2 ]] || die "$1 needs a value"
+      RUNTIME="$2"
+      shift 2
+      ;;
+    --org)
+      [[ $# -ge 2 ]] || die "$1 needs a value"
+      ORG="$2"
+      shift 2
+      ;;
+    --preset)
+      [[ $# -ge 2 ]] || die "$1 needs a value"
+      PRESET="$2"
+      shift 2
+      ;;
+    --lms)
+      [[ $# -ge 2 ]] || die "$1 needs a value"
+      LMS="$2"
+      shift 2
+      ;;
+    --github-org)
+      [[ $# -ge 2 ]] || die "$1 needs a value"
+      GITHUB_ORG="$2"
       shift 2
       ;;
     --with-pages)
@@ -115,17 +162,56 @@ fi
 COURSE_PY="${COURSE_NAME//-/_}"
 VENV_NAME="${COURSE_NAME}-venv"
 
+RESOLVE_ARGS=(
+  python3 "${CATALOG_PY}"
+  --catalog "${CATALOG}"
+  resolve
+  --plain
+  --course-name "${COURSE_NAME}"
+)
+[[ -n "${SHAPE}" ]] && RESOLVE_ARGS+=(--shape "${SHAPE}")
+[[ -n "${RUNTIME}" ]] && RESOLVE_ARGS+=(--runtime "${RUNTIME}")
+[[ -n "${ORG}" ]] && RESOLVE_ARGS+=(--org "${ORG}")
+[[ -n "${PRESET}" ]] && RESOLVE_ARGS+=(--preset "${PRESET}")
+[[ -n "${LMS}" ]] && RESOLVE_ARGS+=(--lms "${LMS}")
+[[ -n "${GITHUB_ORG}" ]] && RESOLVE_ARGS+=(--github-org "${GITHUB_ORG}")
+[[ "${WITH_PAGES}" -eq 1 ]] && RESOLVE_ARGS+=(--pages)
+
+RESOLVE_OUT="$("${RESOLVE_ARGS[@]}")"
+
+declare -A TPL_VARS=()
+TPL_VARS[COURSE_NAME]="${COURSE_NAME}"
+TPL_VARS[COURSE_TITLE]="${COURSE_TITLE}"
+TPL_VARS[COURSE_CODE]="${COURSE_CODE}"
+TPL_VARS[COURSE_PY]="${COURSE_PY}"
+TPL_VARS[VENV_NAME]="${VENV_NAME}"
+
+SHAPE_ID=""
+RUNTIME_ID=""
+ORG_ID=""
+
+while IFS=$'\t' read -r kind a b c; do
+  [[ -z "${kind}" ]] && continue
+  case "${kind}" in
+    META)
+      case "${a}" in
+        shape) SHAPE_ID="${b}" ;;
+        runtime) RUNTIME_ID="${b}" ;;
+        org) ORG_ID="${b}" ;;
+      esac
+      ;;
+    VAR)
+      TPL_VARS["${a}"]="${b}"
+      ;;
+  esac
+done <<< "${RESOLVE_OUT}"
+
 CREATED=0
 SKIPPED=0
 
 render_template() {
   local src="$1"
   local dest="$2"
-  COURSE_NAME="${COURSE_NAME}" \
-  COURSE_TITLE="${COURSE_TITLE}" \
-  COURSE_CODE="${COURSE_CODE}" \
-  COURSE_PY="${COURSE_PY}" \
-  VENV_NAME="${VENV_NAME}" \
   python3 - "$src" "$dest" <<'PY'
 import os
 import sys
@@ -134,19 +220,32 @@ from pathlib import Path
 src = Path(sys.argv[1])
 dest = Path(sys.argv[2])
 text = src.read_text(encoding="utf-8")
-for key in ("COURSE_NAME", "COURSE_TITLE", "COURSE_CODE", "COURSE_PY", "VENV_NAME"):
-    text = text.replace(f"__{key}__", os.environ[key])
+# Longer keys first so COURSE_NAME does not eat COURSE_NAME_FOO if we add one.
+keys = sorted(
+    (k[4:] for k in os.environ if k.startswith("TPL_")),
+    key=len,
+    reverse=True,
+)
+for key in keys:
+    text = text.replace(f"__{key}__", os.environ["TPL_" + key])
 dest.parent.mkdir(parents=True, exist_ok=True)
 dest.write_text(text, encoding="utf-8")
 PY
 }
 
+export_tpl_vars() {
+  local k
+  for k in "${!TPL_VARS[@]}"; do
+    export "TPL_${k}=${TPL_VARS[$k]}"
+  done
+}
+
 install_file() {
-  local rel="$1"
-  local dest_rel="${2:-${rel%.tpl}}"
-  local src="${TEMPLATE_DIR}/${rel}"
+  local src_rel="$1"
+  local dest_rel="$2"
+  local src="${TEMPLATE_DIR}/${src_rel}"
   local dest="${OUTDIR}/${dest_rel}"
-  [[ -f "${src}" ]] || die "missing template: ${rel}"
+  [[ -f "${src}" ]] || die "missing template: ${src_rel}"
   if [[ -e "${dest}" ]]; then
     log "skip (exists): ${dest_rel}"
     SKIPPED=$((SKIPPED + 1))
@@ -158,13 +257,14 @@ install_file() {
 }
 
 install_copy() {
-  local rel="$1"
-  local mode="${2:-}"
-  local src="${TEMPLATE_DIR}/${rel}"
-  local dest="${OUTDIR}/${rel}"
-  [[ -f "${src}" ]] || die "missing template: ${rel}"
+  local src_rel="$1"
+  local dest_rel="$2"
+  local mode="${3:-}"
+  local src="${TEMPLATE_DIR}/${src_rel}"
+  local dest="${OUTDIR}/${dest_rel}"
+  [[ -f "${src}" ]] || die "missing template: ${src_rel}"
   if [[ -e "${dest}" ]]; then
-    log "skip (exists): ${dest#"${OUTDIR}"/}"
+    log "skip (exists): ${dest_rel}"
     SKIPPED=$((SKIPPED + 1))
     return 0
   fi
@@ -173,13 +273,26 @@ install_copy() {
   if [[ "${mode}" == "exec" ]]; then
     chmod +x "${dest}"
   fi
-  log "created: ${dest#"${OUTDIR}"/}"
+  log "created: ${dest_rel}"
   CREATED=$((CREATED + 1))
 }
 
-ensure_dir() {
-  local d="${OUTDIR}/$1"
-  mkdir -p "${d}"
+append_fragment() {
+  local src_rel="$1"
+  local dest_rel="$2"
+  local src="${TEMPLATE_DIR}/${src_rel}"
+  local dest="${OUTDIR}/${dest_rel}"
+  [[ -f "${src}" ]] || die "missing template: ${src_rel}"
+  mkdir -p "$(dirname "${dest}")"
+  if [[ -f "${dest}" ]] && grep -q "BEGIN symcourse runtime uv" "${dest}"; then
+    log "skip (exists): ${dest_rel} runtime fragment"
+    SKIPPED=$((SKIPPED + 1))
+    return 0
+  fi
+  printf '\n' >> "${dest}"
+  cat "${src}" >> "${dest}"
+  log "appended: ${dest_rel} ← ${src_rel}"
+  CREATED=$((CREATED + 1))
 }
 
 install_agents() {
@@ -201,8 +314,11 @@ install_agents() {
   "${cmd[@]}"
 }
 
+export_tpl_vars
+
 log "Scaffolding ${COURSE_CODE} — ${COURSE_TITLE}"
 log "Destination: ${OUTDIR}"
+log "Catalog: shape=${SHAPE_ID} runtime=${RUNTIME_ID} org=${ORG_ID}"
 if [[ "${WITH_PAGES}" -eq 1 ]]; then
   log "Pages hub: yes"
 else
@@ -214,68 +330,52 @@ else
   log "Agents: no"
 fi
 
-ensure_dir assignments
-ensure_dir data/public
-ensure_dir docs/modules
-ensure_dir docs/projects
-ensure_dir docs/admin
-ensure_dir lectures
-ensure_dir scripts
-ensure_dir .devcontainer
-ensure_dir .github/workflows
+while IFS=$'\t' read -r kind a b c; do
+  [[ -z "${kind}" ]] && continue
+  case "${kind}" in
+    DIR)
+      mkdir -p "${OUTDIR}/${a}"
+      ;;
+    FILE)
+      install_file "${a}" "${b}"
+      ;;
+    COPY)
+      install_copy "${a}" "${b}" "${c:-}"
+      ;;
+    APPEND)
+      append_fragment "${a}" "${b}"
+      ;;
+    KEEP)
+      if [[ ! -e "${OUTDIR}/${a}" ]]; then
+        mkdir -p "$(dirname "${OUTDIR}/${a}")"
+        touch "${OUTDIR}/${a}"
+        log "created: ${a}"
+        CREATED=$((CREATED + 1))
+      else
+        log "skip (exists): ${a}"
+        SKIPPED=$((SKIPPED + 1))
+      fi
+      ;;
+  esac
+done <<< "${RESOLVE_OUT}"
 
-install_file README.md.tpl
-install_file QUICKSTART.md.tpl
-install_file CONTRIBUTING.md.tpl
-install_file AGENTS.md.tpl
-install_file pyproject.toml.tpl
-install_file gitignore.tpl .gitignore
-install_file Containerfile.tpl
-install_file .devcontainer/devcontainer.json.tpl
-install_copy .github/workflows/release.yml
-install_copy scripts/container-entrypoint.sh exec
-install_copy scripts/install-learner-agents.sh exec
-install_file docs/ai-what-to-expect.md.tpl
-install_file docs/modules/README.md.tpl
-install_file docs/projects/README.md.tpl
-install_file docs/admin/README.md.tpl
-install_file docs/admin/PLANNING.md.tpl
-install_file assignments/README.md.tpl
-install_file data/README.md.tpl
-install_file lectures/README.md.tpl
-install_file lectures/_quarto.yml.tpl
-
-if [[ ! -e "${OUTDIR}/data/public/.gitkeep" ]]; then
-  touch "${OUTDIR}/data/public/.gitkeep"
-  log "created: data/public/.gitkeep"
-  CREATED=$((CREATED + 1))
-else
-  log "skip (exists): data/public/.gitkeep"
-  SKIPPED=$((SKIPPED + 1))
+if [[ -f "${OUTDIR}/scripts/build-pages.sh" ]]; then
+  chmod +x "${OUTDIR}/scripts/build-pages.sh"
 fi
 
-if [[ "${WITH_PAGES}" -eq 1 ]]; then
-  ensure_dir site
-  install_file site/README.md.tpl
-  install_file site/index.html.tpl
-  install_file scripts/build-pages.sh.tpl
-  if [[ -f "${OUTDIR}/scripts/build-pages.sh" ]]; then
-    chmod +x "${OUTDIR}/scripts/build-pages.sh"
+if [[ "${RUNTIME_ID}" == "uv" ]]; then
+  if [[ -f "${OUTDIR}/pyproject.toml" ]] && command -v uv >/dev/null 2>&1; then
+    if [[ -f "${OUTDIR}/uv.lock" ]]; then
+      log "skip (exists): uv.lock"
+      SKIPPED=$((SKIPPED + 1))
+    else
+      log "writing uv.lock"
+      (cd "${OUTDIR}" && uv lock)
+      CREATED=$((CREATED + 1))
+    fi
+  elif [[ ! -f "${OUTDIR}/uv.lock" ]]; then
+    warn "uv not on PATH; skip uv.lock. Run: cd ${OUTDIR} && uv lock"
   fi
-  install_file .github/workflows/pages.yml.tpl
-fi
-
-if [[ -f "${OUTDIR}/pyproject.toml" ]] && command -v uv >/dev/null 2>&1; then
-  if [[ -f "${OUTDIR}/uv.lock" ]]; then
-    log "skip (exists): uv.lock"
-    SKIPPED=$((SKIPPED + 1))
-  else
-    log "writing uv.lock"
-    (cd "${OUTDIR}" && uv lock)
-    CREATED=$((CREATED + 1))
-  fi
-elif [[ ! -f "${OUTDIR}/uv.lock" ]]; then
-  warn "uv not on PATH; skip uv.lock. Run: cd ${OUTDIR} && uv lock"
 fi
 
 if [[ ! -d "${OUTDIR}/.git" ]]; then
