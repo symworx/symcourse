@@ -5,14 +5,16 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: makecourse.sh <course-name> [outdir] [options]
+Usage: makecourse.sh <course-name> [outdir] --course-number TEXT --course-title TEXT [options]
 
   course-name   Repo / directory name, e.g. ian-630 or ian-6x0
   outdir        Destination (default: ./<course-name> under cwd)
 
+Required:
+  --course-number TEXT   Catalog / display code, e.g. "IAN 630" (alias: --code)
+  --course-title TEXT    Human title (alias: --title)
+
 Options:
-  --title TEXT     Human title (default: derived from course-name)
-  --code TEXT      Display code, e.g. "IAN 630" (default: derived)
   --with-pages     Include GitHub Pages hub (site/ + workflow)
   -h, --help       Show this help
 
@@ -44,13 +46,13 @@ while [[ $# -gt 0 ]]; do
       usage
       exit 0
       ;;
-    --title)
-      [[ $# -ge 2 ]] || die "--title needs a value"
+    --title|--course-title)
+      [[ $# -ge 2 ]] || die "$1 needs a value"
       COURSE_TITLE="$2"
       shift 2
       ;;
-    --code)
-      [[ $# -ge 2 ]] || die "--code needs a value"
+    --code|--course-number)
+      [[ $# -ge 2 ]] || die "$1 needs a value"
       COURSE_CODE="$2"
       shift 2
       ;;
@@ -87,16 +89,8 @@ else
   OUTDIR="${PWD}/${COURSE_NAME}"
 fi
 
-if [[ -z "${COURSE_CODE}" ]]; then
-  if [[ "${COURSE_NAME}" == ian-* ]]; then
-    COURSE_CODE="IAN ${COURSE_NAME#ian-}"
-  else
-    COURSE_CODE="${COURSE_NAME}"
-  fi
-fi
-if [[ -z "${COURSE_TITLE}" ]]; then
-  COURSE_TITLE="${COURSE_CODE}"
-fi
+[[ -n "${COURSE_CODE}" ]] || die "--course-number (or --code) is required"
+[[ -n "${COURSE_TITLE}" ]] || die "--course-title (or --title) is required"
 
 COURSE_PY="${COURSE_NAME//-/_}"
 VENV_NAME="${COURSE_NAME}-venv"
@@ -201,6 +195,8 @@ install_file docs/ai-what-to-expect.md.tpl
 install_file docs/modules/README.md.tpl
 install_file docs/projects/README.md.tpl
 install_file docs/admin/README.md.tpl
+install_file docs/admin/PLANNING.md.tpl
+install_file docs/admin/SLO.md.tpl
 install_file assignments/README.md.tpl
 install_file data/README.md.tpl
 install_file lectures/README.md.tpl
