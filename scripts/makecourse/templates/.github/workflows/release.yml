@@ -1,0 +1,17 @@
+name: Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: uncg-msia/.github/.github/workflows/create-release.yml@main
+    secrets: inherit

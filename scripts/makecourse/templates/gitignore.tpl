@@ -13,7 +13,7 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 
-# --- Linux --- 
+# --- Linux ---
 .Trash-*
 
 # ================================================== #
@@ -44,12 +44,13 @@ eln-cache/
 .vscode/
 .vscode-test/
 
-# --- JetBrains (PyCharm) --- 
+# --- JetBrains (PyCharm) ---
 .idea/
 
 # ================================================== #
 # PYTHON / UV / ENVIRONMENTS
 # ================================================== #
+.env
 
 # --- Bytecode ---
 __pycache__/
@@ -58,7 +59,8 @@ __pycache__/
 
 # --- uv ---
 .venv/
-uv.lock
+# Commit uv.lock for reproducible student/container installs
+# uv.lock
 
 # --- Virtualenvs ---
 env/
@@ -107,11 +109,18 @@ coverage.xml
 cover/
 
 # ================================================== #
-# DOCUMENTATION
+# DOCUMENTATION / STATIC SITE
 # ================================================== #
 
 docs/_build/
-site/
+
+# GitHub Pages *build* output (source HTML hub lives in tracked `site/` when used)
+_site/
+
+# Quarto lecture render (merged into _site/lectures/ at Pages build)
+lectures/_built/
+lectures/.quarto/
+**/.quarto/
 
 # ================================================== #
 # JUPYTER / IPYTHON
@@ -125,8 +134,8 @@ ipython_config.py
 # PROJECT / TOOLING
 # ================================================== #
 
-# --- mkdocs ---
-/site
+# --- mkdocs (if used later): build elsewhere; do not ignore course hub `site/` ---
+# site/   # intentionally tracked when the course has an HTML study hub
 
 #  --- PyInstaller ---
 *.spec
@@ -163,9 +172,32 @@ container-build/
 container-cache/
 
 # ================================================== #
+# COURSE DATA (never commit restricted extracts)
+# ================================================== #
+
+data/private/
+*.duckdb
+*.parquet
+# Add course-specific DUA patterns here (e.g. data/mimic*/ ) when needed.
+
+# ================================================== #
 # MISC
 # ================================================== #
 
 tags
 tmp/
 *.log
+
+# ================================================== #
+# AI
+# ================================================== #
+# Local agent trees only (container installs learner packs at start; do not commit)
+.agents/*
+.grok/*
+.claude/*
+.codex/*
+.symkit/
+CLAUDE.md
+
+/.quarto/
+**/*.quarto_ipynb
