@@ -1,7 +1,7 @@
 # Rust + crates.io symkit in a builder so the final image has rustc/cargo/symkit
 # without recompiling on Python-only layer changes.
 ARG RUST_IMAGE=rust:1.85-bookworm
-ARG SYMKIT_VERSION=0.1.1
+ARG SYMKIT_VERSION=0.2.0
 
 FROM ${RUST_IMAGE} AS rust-tools
 ARG SYMKIT_VERSION
@@ -10,7 +10,7 @@ RUN rustup set profile minimal \
  && rm -rf /usr/local/cargo/registry /usr/local/cargo/git
 
 FROM python:3.14-slim-bookworm
-ARG SYMKIT_VERSION=0.1.1
+ARG SYMKIT_VERSION=0.2.0
 
 # Stop writing .pyc files; keep stdout unbuffered
 ENV PYTHONDONTWRITEBYTECODE=1

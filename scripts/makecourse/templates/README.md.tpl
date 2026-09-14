@@ -21,7 +21,7 @@ git checkout main && git fetch origin
 Then open:
 
 - [QUICKSTART.md](QUICKSTART.md) — environment
-- [docs/](docs/) — handbook, module cards, and SLO map as they are authored
+- [docs/](docs/) — handbook, module cards, and [docs/slos.md](docs/slos.md) as they are authored
 - [assignments/](assignments/) — graded prompts → submit on Canvas
 - [docs/ai-what-to-expect.md](docs/ai-what-to-expect.md) — AI expectations
 

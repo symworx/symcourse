@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# Scaffold a UNCG MSIA course master from the IAN 630 *shape* (runtime,
-# layout, release wiring). Does not copy course content.
+# Copyright (c) 2026, PalEm Dynamics LLC
+# Licensed under the Apache License, Version 2.0.
+#
+# Scaffold a course master from the IAN 630 *shape* (runtime, layout,
+# release wiring). Does not copy course content. Nested `symkit install`
+# adds the teaching instructor pack and docs/slos.md when symkit is on PATH.
 set -euo pipefail
 
 usage() {
@@ -10,16 +14,21 @@ Usage: makecourse.sh <course-name> [outdir] --course-number TEXT --course-title 
   course-name   Repo / directory name, e.g. ian-630 or ian-6x0
   outdir        Destination (default: ./<course-name> under cwd)
 
+Prefer: ./cli/symcourse new <course-name> [outdir] …
+
 Required:
   --course-number TEXT   Catalog / display code, e.g. "IAN 630" (alias: --code)
   --course-title TEXT    Human title (alias: --title)
 
 Options:
   --with-pages     Include GitHub Pages hub (site/ + workflow)
+  --no-agents      Skip nested `symkit install`
+  --adapters SET   Passed to nested symkit (grok, claude, codex, all, none)
   -h, --help       Show this help
 
 Existing files are left alone. Safe to re-run on a repo that already
 has a README. Requires python3; uv is used to write uv.lock when present.
+Nested symkit (if present) is invoked with --yes and without --scaffold.
 
 Templates live next to this script in templates/.
 EOF
@@ -38,6 +47,8 @@ OUTDIR=""
 COURSE_TITLE=""
 COURSE_CODE=""
 WITH_PAGES=0
+WITH_AGENTS=1
+ADAPTERS=""
 POSITIONAL=()
 
 while [[ $# -gt 0 ]]; do
@@ -59,6 +70,15 @@ while [[ $# -gt 0 ]]; do
     --with-pages)
       WITH_PAGES=1
       shift
+      ;;
+    --no-agents)
+      WITH_AGENTS=0
+      shift
+      ;;
+    --adapters)
+      [[ $# -ge 2 ]] || die "$1 needs a value"
+      ADAPTERS="$2"
+      shift 2
       ;;
     --)
       shift
@@ -162,12 +182,36 @@ ensure_dir() {
   mkdir -p "${d}"
 }
 
+install_agents() {
+  local cmd
+  if [[ "${WITH_AGENTS}" -ne 1 ]]; then
+    log "agents: skipped (--no-agents)"
+    return 0
+  fi
+  cmd=(symkit install "${OUTDIR}" --harness teaching --role instructor --docs slos --yes)
+  if [[ -n "${ADAPTERS}" ]]; then
+    cmd+=(--adapters "${ADAPTERS}")
+  fi
+  if ! command -v symkit >/dev/null 2>&1; then
+    warn "symkit not on PATH; skip agent install."
+    warn "Next: ${cmd[*]}"
+    return 0
+  fi
+  log "Installing teaching harness (instructor + --docs slos; no --scaffold)"
+  "${cmd[@]}"
+}
+
 log "Scaffolding ${COURSE_CODE} — ${COURSE_TITLE}"
 log "Destination: ${OUTDIR}"
 if [[ "${WITH_PAGES}" -eq 1 ]]; then
   log "Pages hub: yes"
 else
   log "Pages hub: no (pass --with-pages to include)"
+fi
+if [[ "${WITH_AGENTS}" -eq 1 ]]; then
+  log "Agents: nested symkit install (pass --no-agents to skip)"
+else
+  log "Agents: no"
 fi
 
 ensure_dir assignments
@@ -196,7 +240,6 @@ install_file docs/modules/README.md.tpl
 install_file docs/projects/README.md.tpl
 install_file docs/admin/README.md.tpl
 install_file docs/admin/PLANNING.md.tpl
-install_file docs/admin/SLO.md.tpl
 install_file assignments/README.md.tpl
 install_file data/README.md.tpl
 install_file lectures/README.md.tpl
@@ -240,6 +283,9 @@ if [[ ! -d "${OUTDIR}/.git" ]]; then
   log "git init (default branch develop)"
 fi
 
+install_agents
+
 log "Done. created=${CREATED} skipped=${SKIPPED}"
 log "Next: edit README, add a handbook when the spine is stable."
 log "Do not commit .agents/ / .grok/ / .claude/ / .codex/."
+log "Published SLOs: docs/slos.md (from nested symkit --docs slos)."
