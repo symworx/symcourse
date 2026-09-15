@@ -490,4 +490,4 @@ install_agents
 log "Done. created=${CREATED} skipped=${SKIPPED}"
 log "Next: edit README, add a handbook when the spine is stable."
 log "Do not commit .agents/ / .grok/ / .claude/ / .codex/."
-log "Published SLOs: docs/slos.md (from nested symkit --docs slos)."
+log "Published SLOs: docs/slos.md (course identity filled in; nested symkit --docs slos skips if present)."

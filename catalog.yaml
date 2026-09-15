@@ -48,6 +48,8 @@ shapes:
         dest: .gitignore
       - src: shapes/course/docs/ai-what-to-expect.md.tpl
         dest: docs/ai-what-to-expect.md
+      - src: shapes/course/docs/slos.md.tpl
+        dest: docs/slos.md
       - src: shapes/course/docs/modules/README.md.tpl
         dest: docs/modules/README.md
       - src: shapes/course/docs/projects/README.md.tpl

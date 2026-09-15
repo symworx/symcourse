@@ -104,7 +104,7 @@ Later layers override the same destination: shape → runtime → org → pages.
 ## What it writes (default)
 
 - `README.md`, `QUICKSTART.md`, `CONTRIBUTING.md`, `AGENTS.md`
-- `docs/` stubs (modules, projects, admin README/PLANNING, AI expectations)
+- `docs/` stubs (modules, projects, admin README/PLANNING, AI expectations, `docs/slos.md` with course code/title)
 - `assignments/`, `lectures/` (empty `_quarto.yml`), `data/public/`
 - `.gitignore` (agent trees, restricted data)
 
@@ -122,7 +122,7 @@ When nested `symkit` runs: `AGENTS-SYMKIT.md`, pointer on `AGENTS.md`,
 | Path | Owner |
 |:--|:--|
 | Course identity and layout | this repo (shape / runtime / org) |
-| `docs/slos.md` | `symkit --docs slos` |
+| `docs/slos.md` | **this repo** (course code + title filled in). `symkit --docs slos` copies a blank only if the file is missing |
 | `docs/ai-what-to-expect.md` | this repo (committed student handout; org overlay may replace) |
 | `docs/ai/*` | symkit learner pack (copy-if-missing) |
 | `.agents/`, adapters, `AGENTS-SYMKIT.md` | symkit |
