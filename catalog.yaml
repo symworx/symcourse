@@ -134,3 +134,10 @@ extras:
         dest: scripts/build-pages.sh
       - src: extras/pages/.github/workflows/pages.yml.tpl
         dest: .github/workflows/pages.yml
+  migration_docs:
+    description: Local PDF/DOCX dump dir (contents gitignored except README)
+    dirs:
+      - migration-docs
+    files:
+      - src: extras/migration-docs/README.md.tpl
+        dest: migration-docs/README.md

@@ -38,6 +38,8 @@ T1="$TMP/bio-101"
 [[ -f "$T1/assignments/README.md" ]] || fail "assignments"
 [[ -f "$T1/lectures/_quarto.yml" ]] || fail "quarto yml"
 [[ -f "$T1/docs/admin/PLANNING.md" ]] || fail "admin PLANNING"
+[[ -f "$T1/migration-docs/README.md" ]] || fail "default migration-docs README"
+grep -q 'migration-docs/\*\*' "$T1/.gitignore" || fail "migration-docs gitignore"
 [[ -d "$T1/.git" ]] || fail "git init"
 [[ ! -e "$T1/Containerfile" ]] || fail "default runtime none must not write Containerfile"
 [[ ! -e "$T1/pyproject.toml" ]] || fail "default must not write pyproject.toml"
@@ -66,6 +68,15 @@ T1b="$TMP/bio-lms"
   --no-agents
 grep -q "Moodle" "$T1b/assignments/README.md" || fail "--lms Moodle"
 grep -q "github.com/example-edu/bio-lms" "$T1b/README.md" || fail "--github-org clone URL"
+
+T_NOMIG="$TMP/no-mig"
+"$CLI" new no-mig "$T_NOMIG" \
+  --course-number "BIO 103" \
+  --course-title "No dump dir" \
+  --no-migration-docs \
+  --no-agents
+[[ -e "$T_NOMIG/migration-docs/README.md" ]] && fail "--no-migration-docs must skip README"
+grep -q 'migration-docs/\*\*' "$T_NOMIG/.gitignore" || fail "gitignore still ignores dumps"
 
 # uv runtime, still generic org
 T_UV="$TMP/stats-uv"
@@ -107,18 +118,55 @@ grep -q "uncg-msia" "$T3/README.md" || fail "msia README org"
 grep -q "Canvas" "$T3/QUICKSTART.md" || fail "msia QUICKSTART Canvas"
 grep -q "msia-faculty" "$T3/CONTRIBUTING.md" || fail "msia faculty docs"
 
-if command -v symkit >/dev/null 2>&1; then
+# --symkit must point at a real binary
+if "$CLI" new bad-sk "$TMP/bad-sk" \
+  --course-number "X 1" --course-title "Bad" \
+  --symkit "$TMP/no-such-symkit" >/dev/null 2>&1; then
+  fail "bad --symkit must fail"
+fi
+
+# --symkit PATH is used for nested install
+STUB="$TMP/fake-symkit"
+cat > "$STUB" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" > "$(dirname "$0")/symkit-log"
+exit 0
+EOF
+chmod +x "$STUB"
+T_SK="$TMP/via-symkit"
+"$CLI" new via-symkit "$T_SK" \
+  --course-number "CS 2" \
+  --course-title "Via symkit" \
+  --symkit "$STUB"
+[[ -f "$TMP/symkit-log" ]] || fail "--symkit stub was not invoked"
+grep -q "install ${T_SK}" "$TMP/symkit-log" || fail "nested install target"
+grep -q -- "--harness teaching" "$TMP/symkit-log" || fail "nested --harness"
+grep -q -- "--docs slos" "$TMP/symkit-log" || fail "nested --docs slos"
+if grep -q -- "--scaffold" "$TMP/symkit-log"; then fail "nested install must not pass --scaffold"; fi
+
+rm -f "$TMP/symkit-log"
+"$CLI" new skip-sk "$TMP/skip-sk" \
+  --course-number "CS 3" \
+  --course-title "Skip" \
+  --symkit "$STUB" \
+  --no-agents
+[[ -f "$TMP/symkit-log" ]] && fail "--no-agents must not invoke --symkit"
+
+if command -v symkit >/dev/null 2>&1 || [[ -x /var/home/ntberry/worx/csymd/symkit/cli/symkit ]]; then
+  SK_BIN="$(command -v symkit 2>/dev/null || true)"
+  [[ -n "$SK_BIN" ]] || SK_BIN=/var/home/ntberry/worx/csymd/symkit/cli/symkit
   T4="$TMP/with-agents"
   "$CLI" new with-agents "$T4" \
     --course-number "CS 1" \
-    --course-title "Agents Course"
+    --course-title "Agents Course" \
+    --symkit "$SK_BIN"
   [[ -f "$T4/docs/slos.md" ]] || fail "nested --docs slos"
   [[ ! -e "$T4/docs/admin/SLO.md" ]] || fail "still no admin SLO"
   [[ -f "$T4/AGENTS-SYMKIT.md" ]] || fail "AGENTS-SYMKIT.md from nested install"
   grep -q AGENTS-SYMKIT.md "$T4/AGENTS.md" || fail "pointer on AGENTS.md"
   [[ ! -e "$T4/Containerfile" ]] || fail "nested install must not add Containerfile"
 else
-  printf 'note: symkit not on PATH; skipped nested-install checks\n'
+  printf 'note: no symkit binary; skipped live nested-install checks\n'
 fi
 
 printf 'OK\n'

@@ -29,13 +29,17 @@ Layout (catalog.yaml; defaults: shape=course runtime=none org=none):
   --github-org TEXT  GitHub org for clone URLs (msia defaults to uncg-msia)
 
 Options:
-  --with-pages     Include GitHub Pages hub (site/ + workflow)
-  --no-agents      Skip nested `symkit install`
+  --with-pages           Include GitHub Pages hub (site/ + workflow)
+  --migration-docs       Create migration-docs/ for PDF/Word import (default)
+  --no-migration-docs    Skip migration-docs/
+  --symkit PATH          Nested installer (binary, or a checkout with cli/symkit)
+  --no-agents            Skip nested `symkit install`
   --adapters SET   Passed to nested symkit (grok, claude, codex, all, none)
   -h, --help       Show this help
 
 Existing files are left alone. Requires python3; uv writes uv.lock when the
-uv runtime is selected and uv is on PATH. Nested symkit is optional.
+uv runtime is selected and uv is on PATH. Nested symkit is the usual path
+(--symkit, \$SYMKIT, PATH, or a sibling ../symkit clone). --no-agents skips it.
 
 List ids: ./cli/symcourse list
 EOF
@@ -65,6 +69,8 @@ LMS=""
 GITHUB_ORG=""
 WITH_PAGES=0
 WITH_AGENTS=1
+MIGRATION_DOCS=""
+SYMKIT_ARG=""
 ADAPTERS=""
 POSITIONAL=()
 
@@ -118,6 +124,19 @@ while [[ $# -gt 0 ]]; do
       WITH_PAGES=1
       shift
       ;;
+    --migration-docs)
+      MIGRATION_DOCS=1
+      shift
+      ;;
+    --no-migration-docs)
+      MIGRATION_DOCS=0
+      shift
+      ;;
+    --symkit)
+      [[ $# -ge 2 ]] || die "$1 needs a value"
+      SYMKIT_ARG="$2"
+      shift 2
+      ;;
     --no-agents)
       WITH_AGENTS=0
       shift
@@ -159,6 +178,19 @@ fi
 [[ -n "${COURSE_CODE}" ]] || die "--course-number (or --code) is required"
 [[ -n "${COURSE_TITLE}" ]] || die "--course-title (or --title) is required"
 
+if [[ -z "${MIGRATION_DOCS}" ]]; then
+  if [[ -t 0 ]]; then
+    printf 'Create migration-docs/ for PDF/DOCX import (dumps gitignored)? [Y/n] '
+    read -r _mig || true
+    case "${_mig}" in
+      n|N|no|NO) MIGRATION_DOCS=0 ;;
+      *) MIGRATION_DOCS=1 ;;
+    esac
+  else
+    MIGRATION_DOCS=1
+  fi
+fi
+
 COURSE_PY="${COURSE_NAME//-/_}"
 VENV_NAME="${COURSE_NAME}-venv"
 
@@ -176,6 +208,7 @@ RESOLVE_ARGS=(
 [[ -n "${LMS}" ]] && RESOLVE_ARGS+=(--lms "${LMS}")
 [[ -n "${GITHUB_ORG}" ]] && RESOLVE_ARGS+=(--github-org "${GITHUB_ORG}")
 [[ "${WITH_PAGES}" -eq 1 ]] && RESOLVE_ARGS+=(--pages)
+[[ "${MIGRATION_DOCS}" -eq 1 ]] && RESOLVE_ARGS+=(--migration-docs)
 
 RESOLVE_OUT="$("${RESOLVE_ARGS[@]}")"
 
@@ -295,22 +328,86 @@ append_fragment() {
   CREATED=$((CREATED + 1))
 }
 
+# Resolve a symkit executable: --symkit, $SYMKIT, PATH, then sibling clone.
+resolve_symkit() {
+  local cand="$1"
+  if [[ -z "${cand}" ]]; then
+    return 1
+  fi
+  if [[ -d "${cand}" ]]; then
+    if [[ -x "${cand}/cli/symkit" ]]; then
+      printf '%s\n' "${cand}/cli/symkit"
+      return 0
+    fi
+    if [[ -x "${cand}/symkit" ]]; then
+      printf '%s\n' "${cand}/symkit"
+      return 0
+    fi
+    return 1
+  fi
+  if [[ -x "${cand}" ]]; then
+    printf '%s\n' "${cand}"
+    return 0
+  fi
+  if command -v "${cand}" >/dev/null 2>&1; then
+    command -v "${cand}"
+    return 0
+  fi
+  return 1
+}
+
+find_symkit() {
+  local bin=""
+  if [[ -n "${SYMKIT_ARG}" ]]; then
+    if bin="$(resolve_symkit "${SYMKIT_ARG}")"; then
+      printf '%s\n' "${bin}"
+      return 0
+    fi
+    return 2
+  fi
+  if [[ -n "${SYMKIT:-}" ]]; then
+    if bin="$(resolve_symkit "${SYMKIT}")"; then
+      printf '%s\n' "${bin}"
+      return 0
+    fi
+    return 3
+  fi
+  if command -v symkit >/dev/null 2>&1; then
+    command -v symkit
+    return 0
+  fi
+  if bin="$(resolve_symkit "${ROOT}/../symkit")"; then
+    printf '%s\n' "${bin}"
+    return 0
+  fi
+  return 1
+}
+
 install_agents() {
+  local bin="" rc=0
   local cmd
   if [[ "${WITH_AGENTS}" -ne 1 ]]; then
     log "agents: skipped (--no-agents)"
     return 0
   fi
-  cmd=(symkit install "${OUTDIR}" --harness teaching --role instructor --docs slos --yes)
+  bin="$(find_symkit)" && rc=0 || rc=$?
+  if [[ "${rc}" -eq 2 ]]; then
+    die "symkit not executable: ${SYMKIT_ARG} (pass a binary or a checkout with cli/symkit)"
+  fi
+  if [[ "${rc}" -eq 3 ]]; then
+    die "SYMKIT is set but not executable: ${SYMKIT}"
+  fi
+  if [[ "${rc}" -ne 0 || -z "${bin}" ]]; then
+    warn "symkit not found; skip agent install."
+    warn "Install csymd/symkit, or pass --symkit PATH (binary or checkout)."
+    warn "Next: symkit install ${OUTDIR} --harness teaching --role instructor --docs slos --yes"
+    return 0
+  fi
+  cmd=("${bin}" install "${OUTDIR}" --harness teaching --role instructor --docs slos --yes)
   if [[ -n "${ADAPTERS}" ]]; then
     cmd+=(--adapters "${ADAPTERS}")
   fi
-  if ! command -v symkit >/dev/null 2>&1; then
-    warn "symkit not on PATH; skip agent install."
-    warn "Next: ${cmd[*]}"
-    return 0
-  fi
-  log "Installing teaching harness (instructor + --docs slos; no --scaffold)"
+  log "Installing teaching harness via ${bin} (instructor + --docs slos; no --scaffold)"
   "${cmd[@]}"
 }
 
@@ -328,6 +425,11 @@ if [[ "${WITH_AGENTS}" -eq 1 ]]; then
   log "Agents: nested symkit install (pass --no-agents to skip)"
 else
   log "Agents: no"
+fi
+if [[ "${MIGRATION_DOCS}" -eq 1 ]]; then
+  log "migration-docs/: yes (PDF/Word dumps gitignored)"
+else
+  log "migration-docs/: no"
 fi
 
 while IFS=$'\t' read -r kind a b c; do

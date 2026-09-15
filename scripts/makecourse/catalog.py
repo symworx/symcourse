@@ -206,6 +206,7 @@ def resolve(
     runtime: str,
     org: str,
     pages: bool,
+    migration_docs: bool,
     lms: str,
     github_org: str,
     course_name: str,
@@ -223,6 +224,8 @@ def resolve(
     layers = [shape_spec, runtime_spec, org_spec]
     if pages:
         layers.append(_require(extras, "extra", "pages"))
+    if migration_docs:
+        layers.append(_require(extras, "extra", "migration_docs"))
 
     dirs, items = _merge_files(layers)
 
@@ -257,6 +260,7 @@ def resolve(
         "runtime": runtime,
         "org": org,
         "pages": pages,
+        "migration_docs": migration_docs,
         "dirs": dirs,
         "items": items,
         "vars": vars_,
@@ -306,6 +310,7 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--org", default="")
     r.add_argument("--preset", default="")
     r.add_argument("--pages", action="store_true")
+    r.add_argument("--migration-docs", action="store_true")
     r.add_argument("--lms", default="")
     r.add_argument("--github-org", default="")
     r.add_argument("--course-name", default="course")
@@ -334,6 +339,7 @@ def main(argv: list[str] | None = None) -> int:
         runtime=runtime,
         org=org,
         pages=args.pages,
+        migration_docs=args.migration_docs,
         lms=args.lms,
         github_org=args.github_org,
         course_name=args.course_name,

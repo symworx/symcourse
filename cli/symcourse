@@ -16,9 +16,9 @@ Usage:
   symcourse list
   symcourse help
 
-Scaffold a course repository from catalog.yaml (shape + runtime + org).
-Then, if symkit is on PATH, install the teaching instructor pack and
-docs/slos.md. Do not pass --scaffold to that nested install.
+Scaffold a course repository from catalog.yaml (shape + runtime + org),
+then run nested `symkit install` (instructor + --docs slos, no --scaffold).
+Pass --symkit PATH (binary or checkout) when symkit is not on PATH.
 
 Required:
   --course-number TEXT   Catalog / display code (alias: --code)
@@ -34,11 +34,15 @@ Layout (defaults: --shape course --runtime none --org none):
 
 Options:
   --with-pages           GitHub Pages hub
+  --migration-docs       Create migration-docs/ for PDF/Word import (default)
+  --no-migration-docs    Skip migration-docs/
+  --symkit PATH          Nested installer (binary, or checkout with cli/symkit)
   --no-agents            Skip nested `symkit install`
   --adapters SET         Passed to nested symkit (grok, claude, codex, all, none)
   -h, --help             Show this help
 
 Existing files in the target are left alone. Requires python3.
+Nested symkit: --symkit, $SYMKIT, PATH, or a sibling ../symkit clone.
 EOF
 }
 

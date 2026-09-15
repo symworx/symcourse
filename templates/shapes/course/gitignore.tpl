@@ -70,3 +70,10 @@ tmp/
 .codex/
 .symkit/
 CLAUDE.md
+
+# ================================================== #
+# MIGRATION DUMPS (PDF/Word import; keep README)
+# ================================================== #
+
+migration-docs/**
+!migration-docs/README.md

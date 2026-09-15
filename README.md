@@ -1,17 +1,53 @@
 # symcourse
 
-Scaffold a **course repository**: layout, runtime, and identity. Agent
-packs come from [csymd/symkit](https://github.com/csymd/symkit).
+Scaffold a **course repository**: layout, runtime, and identity.
+
+Agent packs (instructor/TA/learner trees, `docs/slos.md`, adapters) come from
+[csymd/symkit](https://github.com/csymd/symkit). The usual path is **one
+command**: `symcourse new` writes the course tree, then runs `symkit install`
+(no `--scaffold`). Kit-only teaching stubs (`symkit init --scaffold`) are the
+smaller case.
 
 The default is **course- and university-agnostic**. UNCG MSIA / IAN is an
 optional overlay (`--preset msia`), not the product.
+
+## How this relates to symkit
+
+| Tool | Job |
+|:--|:--|
+| **symcourse** | Course shape: folders, identity, optional uv/Containerfile |
+| **symkit** | Agent harness: packs, skills, adapters, `docs/slos.md` |
+
+```bash
+# Usual: layout + instructor packs + slos blank
+./cli/symcourse new bio-101 \
+  --course-number "BIO 101" \
+  --course-title "Intro Biology" \
+  --symkit /path/to/symkit          # binary, or a checkout (uses cli/symkit)
+
+# Same if `symkit` is on PATH, $SYMKIT is set, or ../symkit is a sibling clone
+./cli/symcourse new bio-101 \
+  --course-number "BIO 101" \
+  --course-title "Intro Biology"
+```
+
+That nested install is:
+
+```bash
+symkit install <outdir> --harness teaching --role instructor --docs slos --yes
+```
+
+Do not pass `--scaffold` on a tree this tool created. `--no-agents` skips the
+nested install (layout only). If symkit is missing and you did not pass
+`--no-agents`, the course tree is still written and the install command is
+printed.
 
 ## Quick start
 
 ```bash
 ./cli/symcourse list
 
-# any course (no container, LMS-neutral)
+# any course (no container, LMS-neutral) + nested symkit
 ./cli/symcourse new bio-101 \
   --course-number "BIO 101" \
   --course-title "Intro Biology"
@@ -32,20 +68,16 @@ optional overlay (`--preset msia`), not the product.
 ./cli/symcourse new bio-101 /path/to/bio-101 \
   --course-number "BIO 101" \
   --course-title "Intro Biology"
+
+# layout only
+./cli/symcourse new bio-101 \
+  --course-number "BIO 101" \
+  --course-title "Intro Biology" \
+  --no-agents
 ```
 
 `--course-number` and `--course-title` are required (`--code` and `--title`
 are aliases). Existing files are skipped.
-
-If `symkit` is on `PATH`, `new` then runs:
-
-```bash
-symkit install <outdir> --harness teaching --role instructor --docs slos --yes
-```
-
-No `--scaffold`. Layout is this tool’s job. If `symkit` is missing, the
-course tree is still written and the install command is printed.
-`--no-agents` skips the nested install.
 
 ## Catalog
 
@@ -61,6 +93,11 @@ org ids in the scaffolder.
 | `--lms` | `the course LMS` | Substituted as `__LMS__` (org `msia` sets Canvas unless overridden) |
 | `--github-org` | empty | Clone URLs; `msia` defaults to `uncg-msia` |
 | `--with-pages` | off | HTML study hub + Pages workflow |
+| `--migration-docs` | on (TTY asks) | Local `migration-docs/` for PDF/Word import; dumps gitignored |
+| `--no-migration-docs` | | Skip that dir |
+| `--symkit` | PATH / `$SYMKIT` / `../symkit` | Nested installer |
+| `--no-agents` | off | Skip nested `symkit install` |
+| `--adapters` | (symkit default: grok) | Passed through to nested install |
 
 Later layers override the same destination: shape → runtime → org → pages.
 
@@ -72,11 +109,13 @@ Later layers override the same destination: shape → runtime → org → pages.
 - `.gitignore` (agent trees, restricted data)
 
 Not written unless you opt in: `Containerfile`, `pyproject.toml`, org
-`release.yml`, GitHub Pages. Do not pass `symkit --scaffold` on a tree
-this tool created.
+`release.yml`, GitHub Pages.
 
 When nested `symkit` runs: `AGENTS-SYMKIT.md`, pointer on `AGENTS.md`,
 `.agents/` (gitignored), grok adapter by default, `docs/slos.md`.
+
+`migration-docs/` (default) is for local PDF/Word dumps; convert with
+`migrate-course`. Git ignores the dumps, not `migration-docs/README.md`.
 
 ## Path ownership
 

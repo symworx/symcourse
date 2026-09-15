@@ -16,7 +16,7 @@ them in the catalog. Do not hardcode new ids in `makecourse.sh`.
 ./cli/symcourse new bio-101 \
   --course-number "BIO 101" \
   --course-title "Intro Biology" \
-  --no-agents
+  --symkit ../symkit
 ./tests/smoke.sh
 ```
 
