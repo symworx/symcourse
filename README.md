@@ -1,7 +1,7 @@
 # symcourse
 
 Scaffold a **course repository**: layout, runtime, and identity. Agent
-packs come from [csymd/symkit](https://github.com/csymd/symkit).
+packs come from [symworx/symkit](https://github.com/symworx/symkit).
 
 The default is **course- and university-agnostic**. UNCG MSIA / IAN is an
 optional overlay (`--preset msia`), not the product.

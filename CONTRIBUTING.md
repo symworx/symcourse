@@ -4,7 +4,7 @@ Author on `develop`.
 
 `symcourse` scaffolds **course shape** (layout, runtime, identity overlays).
 Agent packs, adapters, and `docs/slos.md` come from
-[csymd/symkit](https://github.com/csymd/symkit). Do not pass `--scaffold`
+[symworx/symkit](https://github.com/symworx/symkit). Do not pass `--scaffold`
 to `symkit` on a tree this tool created.
 
 `catalog.yaml` lists shapes, runtimes, orgs, and presets. Add a new org by

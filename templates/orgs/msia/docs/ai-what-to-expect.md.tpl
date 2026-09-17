@@ -74,4 +74,4 @@ Ask the instructor or TA early—especially about data and disclosure—before a
 
 ---
 
-*Org default from [csymd/symcourse](https://github.com/csymd/symcourse) (`--org msia`). Courses may ship a localized copy.*
+*Org default from [symworx/symcourse](https://github.com/symworx/symcourse) (`--org msia`). Courses may ship a localized copy.*
