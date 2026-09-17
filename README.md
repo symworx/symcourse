@@ -101,4 +101,4 @@ tree. Learner prune strips instructor agents.
 
 Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md).
 
-Copyright (c) 2026, PalEm Dynamics LLC.
+Copyright (c) 2026, Nathaniel Berry.
