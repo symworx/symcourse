@@ -1,11 +1,11 @@
 # Contributing
 
-Author on `worx` (GitHub default is still `develop` until the rename).
+Author on `worx` (**SymWorx org standard**; GitHub default is still `develop` until the rename).
 
 `symcourse` scaffolds **course shape** (layout, runtime, identity overlays).
-Agent packs, adapters, and `docs/slos.md` come from
-[csymd/symkit](https://github.com/csymd/symkit). Do not pass `--scaffold`
-to `symkit` on a tree this tool created.
+Agent packs, adapters, and `docs/slos.md` come from the org agent-harness
+installer (`symkit`). Do not pass `--scaffold` to `symkit` on a tree this
+tool created.
 
 `catalog.yaml` lists shapes, runtimes, orgs, and presets. Add a new org by
 dropping identity templates under `templates/orgs/<id>/` and registering
