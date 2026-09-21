@@ -1,6 +1,6 @@
 # Contributing
 
-Author on `develop`.
+Author on `worx` (GitHub default is still `develop` until the rename).
 
 `symcourse` scaffolds **course shape** (layout, runtime, identity overlays).
 Agent packs, adapters, and `docs/slos.md` come from
