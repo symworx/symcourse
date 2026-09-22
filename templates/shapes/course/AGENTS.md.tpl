@@ -5,8 +5,7 @@ Instructions for AI coding agents working in **course materials** repositories
 
 ## Mission
 
-Author and maintain course materials. Students pull stable materials from the
-published branch (`main` unless the repo says otherwise). Graded work is
+Author and maintain course materials. Students pull **`worx`**. Graded work is
 submitted on **__LMS__**, not to this repository, unless the course explicitly
 says otherwise.
 
@@ -32,15 +31,16 @@ placeholder, ask.
   an explicit faculty decision.
 - Prefer existing repo conventions over inventing new tooling.
 
-## How work ships (typical)
+## How work ships
+
+GitHub Flow. The default branch is **`worx`**.
 
 | Branch / artifact | Role |
 |:------------------|:-----|
-| `develop` | Day-to-day authoring |
-| `main` | Stable, student-facing materials |
+| `worx` | Default. Day-to-day authoring and the branch students pull |
 | Tagged releases | Materials drops (scheme is course-defined) |
 
-Follow the course `CONTRIBUTING.md` when present.
+Open pull requests against `worx`. Follow the course `CONTRIBUTING.md` when present.
 
 ## Agent behavior
 

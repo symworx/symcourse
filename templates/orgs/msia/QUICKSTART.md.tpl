@@ -1,21 +1,21 @@
 # __COURSE_CODE__ — student quick start
 
-Clone **`main`**, run the course environment, then work from the handbook. **Upload graded work on Canvas**, not to GitHub.
+Clone **`worx`**, run the course environment, then work from the handbook. **Upload graded work on Canvas**, not to GitHub.
 
 Org-wide GitHub account / invitation steps: [github.com/uncg-msia](https://github.com/uncg-msia).
 
-## 1. Clone `main`
+## 1. Clone `worx`
 
 ```bash
 git clone https://github.com/uncg-msia/__COURSE_NAME__.git
 cd __COURSE_NAME__
-git checkout main
+git checkout worx
 git pull
 ```
 
 If GitHub says **repository not found**, you have not been granted access yet, or you are signed in to a different GitHub account. Write the instructor with your GitHub username and the UNCG email on that account.
 
-Stay on **`main`** for labs and notes. Do not use `develop` unless you are proposing a materials fix.
+Stay on **`worx`** for labs and notes. Open a pull request against **`worx`** for a materials fix.
 
 ## 2. Environment (pick one)
 
@@ -31,7 +31,7 @@ Python **≥ 3.13** (`pyproject.toml`). The container image tracks **Python 3.14
 
 This uses [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json) and the repo `Containerfile`. The first image build is slower (Rust + `symkit`); later rebuilds use Docker/Podman layer cache.
 
-On first start in the container (Dev Container or `docker`/`podman` run) **on `main`**, a **local** learner agent pack is written under `.agents/` plus vendor mirrors (`.grok/`, `.claude/`, `.codex/`; gitignored). Stay on `main` (see step 1). The container also overlays a learner `AGENTS.md` for coding agents; that overlay is not a git commit. Do not add `.agents/` or the vendor trees to a pull request. Local `uv` (Option C) does not run this step.
+On first start in the container (Dev Container or `docker`/`podman` run) **on `worx`**, a **local** learner agent pack is written under `.agents/` plus vendor mirrors (`.grok/`, `.claude/`, `.codex/`; gitignored). Stay on `worx` (see step 1). The container also overlays a learner `AGENTS.md` for coding agents; that overlay is not a git commit. Do not add `.agents/` or the vendor trees to a pull request. Local `uv` (Option C) does not run this step.
 
 In VS Code Copilot Chat, use **Agent** mode and pick **learner** from the agent dropdown (from `.claude/agents/`).
 
@@ -81,7 +81,7 @@ If this course publishes an HTML study hub, the README names the URL. That hub i
 | Dev Container command missing | Install the Dev Containers extension; reopen the folder |
 | Container build fails | Docker/Podman running? Retry; first build is slower (Rust + `symkit`) |
 | Explorer empty or only `pyproject.toml` / `.venv` | Rebuild the container (**Dev Containers: Rebuild Container**). The clone is bind-mounted at `/app`. On Fedora/RHEL, SELinux can hide the tree; the Dev Container sets `label=disable`, and CLI users should keep `:Z` on `-v`. |
-| No `.agents/` after Reopen in Container | Confirm you are on `main` (`git checkout main && git pull`), then rebuild the container. |
+| No `.agents/` after Reopen in Container | Confirm you are on `worx` (`git checkout worx && git pull`), then rebuild the container. |
 | `.agents/` / `.claude/` / `.grok/` in `git status` | Leave them untracked; the learner pack is local to the container |
 | `uv: command not found` | Install uv, or use Option A/B |
 | Wrong Python | Use the container, or `uv python list` |

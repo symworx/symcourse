@@ -1,10 +1,26 @@
 # symcourse
 
 Scaffold a **course repository**: layout, runtime, and identity. Agent
-packs come from [csymd/symkit](https://github.com/csymd/symkit).
+packs come from [symworx/symkit](https://github.com/symworx/symkit).
 
 The default is **course- and university-agnostic**. UNCG MSIA / IAN is an
 optional overlay (`--preset msia`), not the product.
+
+## Install
+
+From a clone, `./cli/symcourse` builds the debug binary and runs it. In this checkout the binary reads `catalog.yaml` and `templates/` from the tree.
+
+```bash
+cargo install --locked --path .
+```
+
+A published tag installs the same binary. The catalog and templates are embedded at compile time:
+
+```bash
+cargo install --locked symcourse
+```
+
+`v0.1.0` is the package version. It is on crates.io only after that tag is published. Pull requests go to `worx`. See [CONTRIBUTING.md](CONTRIBUTING.md) and [DEVELOPMENT.md](DEVELOPMENT.md#releasing).
 
 ## Quick start
 
@@ -94,8 +110,13 @@ tree. Learner prune strips instructor agents.
 ## Tests
 
 ```bash
+cargo +nightly fmt -- --check
+cargo test
+cargo clippy --all-targets -- -D warnings
 ./tests/smoke.sh
 ```
+
+Command notes: [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## License
 

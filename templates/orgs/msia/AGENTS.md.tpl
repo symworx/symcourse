@@ -4,7 +4,7 @@ Instructions for AI coding agents working in **course materials** repositories (
 
 ## Mission
 
-Author and maintain graduate course materials for UNCG ILRS / MSIA. Students pull stable materials from **`main`**; **graded work is submitted on Canvas**, not to this repository (unless a course explicitly says otherwise).
+Author and maintain graduate course materials for UNCG ILRS / MSIA. Students pull **`worx`**; **graded work is submitted on Canvas**, not to this repository (unless a course explicitly says otherwise).
 
 ## Hard rules
 
@@ -14,15 +14,16 @@ Author and maintain graduate course materials for UNCG ILRS / MSIA. Students pul
 - Do not put answer keys or private solutions in student-facing paths without an explicit faculty decision.
 - Prefer existing repo conventions (branches, releases, `uv`/container) over inventing new tooling.
 
-## How work ships (typical org pattern)
+## How work ships
+
+GitHub Flow. The default branch is **`worx`**.
 
 | Branch / artifact | Role |
 |:--|:--|
-| `develop` | Day-to-day authoring |
-| `main` | Stable, student-facing materials |
-| `YYYY.S.m` releases | Tagged materials drops (`S=1` fall, `S=2` spring) |
+| `worx` | Default. Day-to-day authoring and the branch students pull |
+| `vYYYY.S.m` tags | Named materials drops (`S=1` fall, `S=2` spring) |
 
-Ship path: land work on `develop` → merge to `main` → tag `vYYYY.S.m`. Org how-tos: [msia-faculty](https://github.com/uncg-msia/msia-faculty). Student-facing contributing stays short in this repo’s `CONTRIBUTING.md`.
+Ship path: land work on `worx`, then tag `vYYYY.S.m`. Org how-tos: [msia-faculty](https://github.com/uncg-msia/msia-faculty). Student-facing contributing stays short in this repo’s `CONTRIBUTING.md`.
 
 ## Agent behavior
 

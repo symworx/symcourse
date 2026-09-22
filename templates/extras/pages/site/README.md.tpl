@@ -4,7 +4,7 @@ Optional **narrative** parallel to the markdown module spine.
 
 ## Student URL (GitHub Pages)
 
-After Pages is enabled and the workflow has run on `main`:
+After Pages is enabled and the workflow has run on the default branch:
 
 **__PAGES_URL__**
 

@@ -10,9 +10,12 @@ OUT="${ROOT}/_site"
 LECTURES_BUILT="${ROOT}/lectures/_built"
 
 REPO="${GITHUB_REPOSITORY:-__GITHUB_REPOSITORY_DEFAULT__}"
-BRANCH="${PAGES_BLOB_BRANCH:-${GITHUB_REF_NAME:-main}}"
-if [[ "${BRANCH}" == *'/'* ]]; then
-  BRANCH="main"
+BRANCH="${PAGES_BLOB_BRANCH:-${GITHUB_REF_NAME:-}}"
+if [[ -z "${BRANCH}" ]]; then
+  BRANCH="$(git -C "${ROOT}" symbolic-ref --short HEAD 2>/dev/null || true)"
+fi
+if [[ -z "${BRANCH}" || "${BRANCH}" == "HEAD" || "${BRANCH}" == *'/'* ]]; then
+  BRANCH="worx"
 fi
 BLOB_BASE="https://github.com/${REPO}/blob/${BRANCH}"
 

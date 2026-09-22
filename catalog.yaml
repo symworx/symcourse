@@ -2,7 +2,7 @@
 # Licensed under the Apache License, Version 2.0.
 #
 # Source of truth for shapes, runtimes, org overlays, and extras.
-# Do not hardcode those ids in makecourse.sh.
+# Do not hardcode those ids in the scaffolder (src/).
 
 version: 1
 

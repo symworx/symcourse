@@ -39,6 +39,11 @@ T1="$TMP/bio-101"
 [[ -f "$T1/lectures/_quarto.yml" ]] || fail "quarto yml"
 [[ -f "$T1/docs/admin/PLANNING.md" ]] || fail "admin PLANNING"
 [[ -d "$T1/.git" ]] || fail "git init"
+git -C "$T1" branch --show-current | grep -qx worx || fail "default branch worx"
+if grep -q develop "$T1/CONTRIBUTING.md" "$T1/README.md" "$T1/AGENTS.md" "$T1/QUICKSTART.md"; then
+  fail "generic course docs must not name develop"
+fi
+grep -q 'worx' "$T1/CONTRIBUTING.md" || fail "generic CONTRIBUTING targets worx"
 [[ ! -e "$T1/Containerfile" ]] || fail "default runtime none must not write Containerfile"
 [[ ! -e "$T1/pyproject.toml" ]] || fail "default must not write pyproject.toml"
 [[ ! -e "$T1/docs/admin/SLO.md" ]] || fail "must not write docs/admin/SLO.md"
@@ -80,6 +85,8 @@ grep -q "SYMKIT_VERSION=0.2.0" "$T_UV/Containerfile" || fail "symkit pin"
 grep -q "BEGIN symcourse runtime uv" "$T_UV/.gitignore" || fail "uv gitignore fragment"
 if grep -q "uncg-msia" "$T_UV/QUICKSTART.md"; then fail "uv QUICKSTART must not hardcode uncg-msia"; fi
 grep -q "the course LMS" "$T_UV/QUICKSTART.md" || fail "uv QUICKSTART uses default LMS"
+if grep -q develop "$T_UV/QUICKSTART.md"; then fail "uv QUICKSTART must not name develop"; fi
+grep -q 'not on worx' "$T_UV/scripts/install-learner-agents.sh" || fail "learner install names worx"
 
 # pages extra, generic
 T2="$TMP/hub-pages"
@@ -106,6 +113,11 @@ T3="$TMP/ian-6xx"
 grep -q "uncg-msia" "$T3/README.md" || fail "msia README org"
 grep -q "Canvas" "$T3/QUICKSTART.md" || fail "msia QUICKSTART Canvas"
 grep -q "msia-faculty" "$T3/CONTRIBUTING.md" || fail "msia faculty docs"
+if grep -q develop "$T3/CONTRIBUTING.md" "$T3/README.md" "$T3/AGENTS.md" "$T3/QUICKSTART.md"; then
+  fail "msia course docs must not name develop"
+fi
+grep -q 'worx' "$T3/CONTRIBUTING.md" || fail "msia CONTRIBUTING targets worx"
+grep -q 'branches: \[worx, main\]' "$T2/.github/workflows/pages.yml" || fail "pages workflow branches"
 
 if command -v symkit >/dev/null 2>&1; then
   T4="$TMP/with-agents"

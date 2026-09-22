@@ -1,18 +1,18 @@
 # __COURSE_CODE__ — student quick start
 
-Clone the student-facing branch, then work from the handbook. **Submit graded
-work on __LMS__**, not to git, unless the instructor says otherwise.
+Clone **`worx`**, then work from the handbook. **Submit graded work on
+__LMS__**, not to git, unless the instructor says otherwise.
 
 ## 1. Clone
 
 ```bash
 __CLONE_SNIPPET__
 cd __COURSE_NAME__
-git checkout main
+git checkout worx
 git pull
 ```
 
-Stay on **`main`** for labs and notes unless you are proposing a materials fix.
+Stay on **`worx`** for labs and notes. Open a pull request against **`worx`** for a materials fix.
 
 ## 2. What to open next
 

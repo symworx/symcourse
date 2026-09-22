@@ -1,12 +1,12 @@
 # Contributing to __COURSE_CODE__
 
-Students: pull **`main`** for materials and submit graded work on **__LMS__**.
+Students: pull **`worx`** for materials and submit graded work on **__LMS__**.
 You do not need a GitHub pull request to turn in labs.
 
 ## Small materials fixes
 
 Typos, broken links, and unclear steps help the next person. Open a GitHub
-**issue**, or a small pull request targeting **`develop`**.
+**issue**, or a small pull request targeting **`worx`**.
 
 Do **not** change grading language, answer keys, or restricted-data paths
 unless the instructor asked you to.
@@ -19,4 +19,4 @@ unless the instructor asked you to.
 
 ## Faculty
 
-Author on **`develop`**. When students should see a drop: merge **`develop` → `main`**, then tag a materials release.
+Author on **`worx`**. When students should see a drop, tag a materials release on **`worx`**.

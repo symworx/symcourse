@@ -1,0 +1,27 @@
+# Copyright (c) 2026, PalEm Dynamics LLC
+# Licensed under the Apache License, Version 2.0.
+
+[package]
+name = "symcourse"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+authors = ["PalEm Dynamics LLC"]
+license = "Apache-2.0"
+description = "Scaffold a course repository: layout, runtime, and identity"
+repository = "https://github.com/symworx/symcourse"
+readme = "README.md"
+
+[[bin]]
+name = "symcourse"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
+thiserror = "2.0"
+include_dir = "0.7"
+
+[dev-dependencies]
+tempfile = "3.14"

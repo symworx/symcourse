@@ -1,10 +1,10 @@
 # Contributing to __COURSE_CODE__
 
-Students: pull **`main`** for materials and submit graded work on **Canvas**. You do not need a GitHub pull request to turn in labs.
+Students: pull **`worx`** for materials and submit graded work on **Canvas**. You do not need a GitHub pull request to turn in labs.
 
 ## Small materials fixes
 
-Typos, broken links, and unclear steps help the next person. Open a GitHub **issue**, or a small pull request targeting **`develop`**.
+Typos, broken links, and unclear steps help the next person. Open a GitHub **issue**, or a small pull request targeting **`worx`**.
 
 Do **not** change grading language, answer keys, or restricted-data paths unless the instructor asked you to.
 
@@ -16,6 +16,6 @@ Do **not** change grading language, answer keys, or restricted-data paths unless
 
 ## Faculty
 
-Author on **`develop`**. When students should see a drop: merge **`develop` → `main`**, then tag **`vYYYY.S.m`**.
+Author on **`worx`**. When students should see a drop, tag **`vYYYY.S.m`** on **`worx`**.
 
 How-tos (releases, access, term offerings) live in **[msia-faculty](https://github.com/uncg-msia/msia-faculty)** — not in this file.

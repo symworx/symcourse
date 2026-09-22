@@ -9,7 +9,7 @@ name: Deploy GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [worx, main]
     paths:
       - "site/**"
       - "scripts/build-pages.sh"
@@ -34,7 +34,7 @@ jobs:
 
       - name: Build static site
         env:
-          PAGES_BLOB_BRANCH: main
+          PAGES_BLOB_BRANCH: ${{ github.ref_name }}
         run: bash scripts/build-pages.sh
 
       - name: Setup Pages

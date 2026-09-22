@@ -10,7 +10,7 @@ See **[QUICKSTART.md](QUICKSTART.md)**.
 ```bash
 __CLONE_SNIPPET__
 cd __COURSE_NAME__
-git checkout main && git fetch origin
+git checkout worx && git fetch origin
 ```
 
 Then open:
@@ -34,6 +34,5 @@ Then open:
 
 ## Faculty
 
-Author on `develop` unless this repo says otherwise. Publish student-facing
-materials on `main` (or the branch your offering uses). Do not pass
-`symkit --scaffold` on a tree created by symcourse.
+Author on `worx`. Tag a release on `worx` when students should see a drop.
+Do not pass `symkit --scaffold` on a tree created by symcourse.

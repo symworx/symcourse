@@ -1,19 +1,19 @@
 # __COURSE_CODE__ — student quick start
 
-Clone the student-facing branch, run the course environment, then work from
-the handbook. **Submit graded work on __LMS__**, not to git, unless the
-instructor says otherwise.
+Clone **`worx`**, run the course environment, then work from the handbook.
+**Submit graded work on __LMS__**, not to git, unless the instructor says
+otherwise.
 
 ## 1. Clone
 
 ```bash
 __CLONE_SNIPPET__
 cd __COURSE_NAME__
-git checkout main
+git checkout worx
 git pull
 ```
 
-Stay on **`main`** for labs and notes unless you are proposing a materials fix.
+Stay on **`worx`** for labs and notes. Open a pull request against **`worx`** for a materials fix.
 
 ## 2. Environment (pick one)
 
@@ -31,7 +31,7 @@ and also includes **Rust** (`rustc` / `cargo`) plus `symkit` (from crates.io).
 This uses [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json)
 and the repo `Containerfile`.
 
-On first start in the container **on `main`**, a **local** learner agent pack
+On first start in the container **on `worx`**, a **local** learner agent pack
 is written under `.agents/` plus vendor mirrors (`.grok/`, `.claude/`,
 `.codex/`; gitignored). Do not add those trees to a pull request. Local `uv`
 (Option C) does not run this step.
@@ -79,7 +79,7 @@ Expected: one line starting with `ok` and version numbers.
 | `repository not found` | Accept the GitHub invite; confirm you are signed in to the right account |
 | Dev Container command missing | Install the Dev Containers extension; reopen the folder |
 | Container build fails | Docker/Podman running? Retry; first build is slower (Rust + `symkit`) |
-| No `.agents/` after Reopen in Container | Confirm you are on `main`, then rebuild the container |
+| No `.agents/` after Reopen in Container | Confirm you are on `worx`, then rebuild the container |
 | `.agents/` / `.claude/` / `.grok/` in `git status` | Leave them untracked; the learner pack is local |
 | `uv: command not found` | Install uv, or use Option A/B |
 

@@ -8,14 +8,14 @@ Pull course materials from this repository; **upload all graded work on Canvas**
 
 Follow the org-wide account / invitation steps on the
 [UNCG MSIA organization page](https://github.com/uncg-msia),
-then **[QUICKSTART.md](QUICKSTART.md)** (clone `main`, container or `uv`, smoke test).
+then **[QUICKSTART.md](QUICKSTART.md)** (clone `worx`, container or `uv`, smoke test).
 
 Short version:
 
 ```bash
 git clone https://github.com/uncg-msia/__COURSE_NAME__.git
 cd __COURSE_NAME__
-git checkout main && git fetch origin
+git checkout worx && git fetch origin
 ```
 
 Then open:
@@ -29,8 +29,8 @@ Then open:
 
 | Path | Contents |
 |:--|:--|
-| `QUICKSTART.md` | Clone `main`, environment, smoke test |
-| `CONTRIBUTING.md` | Small materials fixes (PRs target `develop`) |
+| `QUICKSTART.md` | Clone `worx`, environment, smoke test |
+| `CONTRIBUTING.md` | Small materials fixes (PRs target `worx`) |
 | `docs/` | Handbook, modules, projects, admin notes |
 | `docs/ai-what-to-expect.md` | Student AI expectations |
 | `lectures/` | Notes and (optional) Quarto sources |
@@ -41,4 +41,4 @@ Then open:
 
 ## Faculty
 
-This is the **faculty master**, not a term repo. Author on `develop`. When students should see a drop: merge `develop` → `main`, then tag `vYYYY.S.m`. How-tos: [msia-faculty](https://github.com/uncg-msia/msia-faculty).
+This is the **faculty master**, not a term repo. Author on `worx`. When students should see a drop, tag `vYYYY.S.m` on `worx`. How-tos: [msia-faculty](https://github.com/uncg-msia/msia-faculty).

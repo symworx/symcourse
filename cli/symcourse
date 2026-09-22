@@ -2,62 +2,12 @@
 # Copyright (c) 2026, PalEm Dynamics LLC
 # Licensed under the Apache License, Version 2.0.
 
-# Front door: list catalog ids, or `new` → scripts/makecourse/makecourse.sh
+# Build and exec the Rust binary. Inside this checkout the binary reads
+# catalog.yaml and templates/ from the tree (see src/assets.rs).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-MAKECOURSE="$ROOT/scripts/makecourse/makecourse.sh"
-CATALOG_PY="$ROOT/scripts/makecourse/catalog.py"
-CATALOG="$ROOT/catalog.yaml"
-
-usage() {
-  cat <<'EOF'
-Usage:
-  symcourse new <course-name> [outdir] --course-number TEXT --course-title TEXT [options]
-  symcourse list
-  symcourse help
-
-Scaffold a course repository from catalog.yaml (shape + runtime + org).
-Then, if symkit is on PATH, install the teaching instructor pack and
-docs/slos.md. Do not pass --scaffold to that nested install.
-
-Required:
-  --course-number TEXT   Catalog / display code (alias: --code)
-  --course-title TEXT    Human title (alias: --title)
-
-Layout (defaults: --shape course --runtime none --org none):
-  --shape ID             Folder spine
-  --runtime none|uv      Language runtime stubs
-  --org none|msia        Identity overlay
-  --preset msia          course + uv + msia (UNCG MSIA / IAN)
-  --lms TEXT             e.g. Canvas (default: "the course LMS")
-  --github-org TEXT      Clone-URL org (msia defaults to uncg-msia)
-
-Options:
-  --with-pages           GitHub Pages hub
-  --no-agents            Skip nested `symkit install`
-  --adapters SET         Passed to nested symkit (grok, claude, codex, all, none)
-  -h, --help             Show this help
-
-Existing files in the target are left alone. Requires python3.
-EOF
-}
-
-cmd="${1:-}"
-case "$cmd" in
-  ""|-h|--help|help)
-    usage
-    exit 0
-    ;;
-  list)
-    exec python3 "$CATALOG_PY" --catalog "$CATALOG" list
-    ;;
-  new)
-    shift
-    exec "$MAKECOURSE" "$@"
-    ;;
-  *)
-    printf 'error: unknown command: %s (try: new | list)\n\n' "$cmd" >&2
-    usage >&2
-    exit 1
-    ;;
-esac
+BIN="$ROOT/target/debug/symcourse"
+if [[ ! -x "$BIN" ]]; then
+  cargo build --manifest-path "$ROOT/Cargo.toml" --quiet
+fi
+exec "$BIN" "$@"

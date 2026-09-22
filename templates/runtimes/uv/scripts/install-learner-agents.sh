@@ -44,7 +44,8 @@ student_branch() {
     return 1
   fi
   branch="$(git_in_root rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
-  [[ "${branch}" == "main" || "${branch}" == "master" ]]
+  # worx is the default. main and master still install on checkouts that use those names.
+  [[ "${branch}" == "worx" || "${branch}" == "main" || "${branch}" == "master" ]]
 }
 
 current_symkit_version() {
@@ -66,7 +67,7 @@ if [[ "${SYMKIT_LEARNER_FORCE:-}" != "1" ]]; then
     exit 0
   fi
   if ! student_branch; then
-    log "not on main; skipping (student container install is main-only)"
+    log "not on worx; skipping (learner install runs on the default branch)"
     exit 0
   fi
 fi
