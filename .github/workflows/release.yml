@@ -1,0 +1,171 @@
+# Copyright (c) 2026, Nathaniel T. Berry
+# Licensed under the Apache License, Version 2.0.
+#
+# Release validation + crates.io publish.
+# Default branch is worx.
+# See DEVELOPMENT.md.
+#
+# GitHub Flow:
+#   feature/* ──PR──► worx ──tag──► vX.Y.Z
+# Optional freeze: push to release/** then PR back to worx.
+#
+# Validation runs on pushes to release/**, tags v*, and workflow_dispatch.
+# crates.io publish runs only on tags v*, after validation succeeds.
+# Create tags manually on worx. v0.1.0 is already published; do not reuse it.
+
+name: Release
+
+on:
+  push:
+    branches:
+      - "release/**"
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  release-meta:
+    name: Release metadata
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      is_tag: ${{ steps.meta.outputs.is_tag }}
+      is_prerelease: ${{ steps.meta.outputs.is_prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          PKG_VERSION=$(
+            awk '
+              $0 ~ /^\[package\]/ { in_pkg=1; next }
+              in_pkg && $0 ~ /^\[/ { in_pkg=0 }
+              in_pkg && $0 ~ /^version/ {
+                if (match($0, /"[^"]+"/)) {
+                  print substr($0, RSTART+1, RLENGTH-2)
+                  exit
+                }
+              }
+            ' Cargo.toml
+          )
+          if [[ -z "${PKG_VERSION}" ]]; then
+            echo "::error::Could not read [package] version from Cargo.toml"
+            exit 1
+          fi
+
+          IS_TAG=false
+          IS_PRERELEASE=false
+          TAG_VERSION=""
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            IS_TAG=true
+            TAG_VERSION="${GITHUB_REF_NAME#v}"
+            if [[ "${TAG_VERSION}" == *-* ]]; then
+              IS_PRERELEASE=true
+            fi
+          fi
+
+          BRANCH_REF="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          if [[ "${BRANCH_REF}" == release/* ]]; then
+            BRANCH_VERSION="${BRANCH_REF#release/}"
+            BRANCH_VERSION="${BRANCH_VERSION#v}"
+            if [[ "${BRANCH_VERSION}" != "${PKG_VERSION}" ]]; then
+              echo "::error::release branch '${BRANCH_REF}' version (${BRANCH_VERSION}) does not match Cargo.toml package version (${PKG_VERSION})"
+              exit 1
+            fi
+          fi
+
+          if [[ "${IS_TAG}" == "true" ]]; then
+            if [[ "${TAG_VERSION}" != "${PKG_VERSION}" ]]; then
+              echo "::error::Tag v${TAG_VERSION} does not match Cargo.toml package version ${PKG_VERSION}"
+              exit 1
+            fi
+            if [[ "${IS_PRERELEASE}" != "true" ]]; then
+              git fetch --no-tags origin worx:refs/remotes/origin/worx
+              if git merge-base --is-ancestor HEAD origin/worx; then
+                echo "Tag commit is on worx."
+              else
+                echo "::warning::Tag v${TAG_VERSION} is not an ancestor of worx. Final releases should be tagged on worx."
+              fi
+            fi
+          fi
+
+          if [[ "${IS_TAG}" == "true" || "${BRANCH_REF}" == release/* ]]; then
+            if ! grep -Eq "^## \[${PKG_VERSION}\]" CHANGELOG.md; then
+              echo "::error::CHANGELOG.md missing '## [${PKG_VERSION}]' section for this release"
+              exit 1
+            fi
+          fi
+
+          {
+            echo "version=${PKG_VERSION}"
+            echo "is_tag=${IS_TAG}"
+            echo "is_prerelease=${IS_PRERELEASE}"
+          } >> "${GITHUB_OUTPUT}"
+
+          echo "Release metadata: version=${PKG_VERSION} is_tag=${IS_TAG} is_prerelease=${IS_PRERELEASE}"
+          if [[ "${IS_TAG}" == "true" ]]; then
+            echo "Tag push: crates.io publish runs after validation succeeds."
+          else
+            echo "Validation only. Publish runs on tags v*."
+          fi
+
+  check:
+    runs-on: ubuntu-latest
+    needs: release-meta
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo +nightly fmt -- --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test -- --quiet
+      - run: ./tests/smoke.sh
+
+  release-ready:
+    name: Release checks passed
+    runs-on: ubuntu-latest
+    needs: [release-meta, check]
+    if: always()
+    steps:
+      - name: Require validation jobs
+        run: |
+          set -euo pipefail
+          echo "release-meta: ${{ needs.release-meta.result }}"
+          echo "check: ${{ needs.check.result }}"
+          test "${{ needs.release-meta.result }}" = "success"
+          test "${{ needs.check.result }}" = "success"
+          echo "Release validation passed for v${{ needs.release-meta.outputs.version }}"
+
+  publish-crates:
+    name: Publish crates.io
+    runs-on: ubuntu-latest
+    needs: [release-meta, release-ready]
+    if: needs.release-meta.outputs.is_tag == 'true' && needs.release-ready.result == 'success'
+    environment: crates-io
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Publish symcourse
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish

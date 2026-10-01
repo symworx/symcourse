@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Tag pushes run the release workflow, which publishes the crate. `v0.1.0` is already on crates.io.
+
 ## [0.1.0] - 2026-09-21
 
 ### Added

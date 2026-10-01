@@ -31,6 +31,8 @@ cargo clippy --all-targets -- -D warnings
 
 `cargo +nightly fmt` is the formatter (`rustfmt.toml`). Extend `./tests/smoke.sh` when scaffold behavior that a course tree can see changes.
 
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs that gate on push and pull requests to `worx`, and on `workflow_dispatch`. It does not publish.
+
 ## Branch model
 
 GitHub Flow. The default branch is **`worx`**.
@@ -71,12 +73,6 @@ A release is a version bump and a changelog entry on `worx`, then a manual tag `
    git push origin vX.Y.Z
    ```
 
-6. From that tagged commit, publish the crate:
+Pushing the tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml). That workflow checks that the tag matches `[package] version` and that `CHANGELOG.md` has `## [X.Y.Z]`, reruns the test gate, then `cargo publish`. Publish uses the GitHub Environment `crates-io` and secret `CARGO_REGISTRY_TOKEN`. A merge to `worx` does not publish. `workflow_dispatch` reruns validation only.
 
-   ```bash
-   cargo publish
-   ```
-
-Create a crates.io API token before the first tag you want on the registry. Yank a bad version if you must. Do not reuse a burned version.
-
-`v0.1.0` is the version in `Cargo.toml`. It is not on crates.io until that tag is published.
+`v0.1.0` is already on crates.io. Do not publish it again. The next release is a higher version. Yank a bad version if you must. Do not reuse a burned version.
