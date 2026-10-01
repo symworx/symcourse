@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright (c) 2026, PalEm Dynamics LLC
+# Copyright (c) 2026, Nathaniel T. Berry
 # Licensed under the Apache License, Version 2.0.
 #
 # Bump the symcourse crate version.
@@ -19,7 +19,7 @@
 #   ./scripts/bump-version.sh major        # 0.1.0 → 1.0.0
 #   ./scripts/bump-version.sh set 0.2.0
 #   ./scripts/bump-version.sh set 0.2.0-rc.1
-#   ./scripts/bump-version.sh set 0.1.0 --yes   # downgrade (not if already on crates.io)
+#   ./scripts/bump-version.sh set 0.1.1 --yes   # downgrade only if that version was never published
 #   ./scripts/bump-version.sh patch --dry-run
 #   ./scripts/bump-version.sh minor --changelog
 #
@@ -30,6 +30,7 @@
 #   2. Fill in CHANGELOG.md
 #   3. git diff, commit, open PR → worx
 #   4. After merge: git tag -a vX.Y.Z && git push origin vX.Y.Z
+#      The release workflow publishes that tag. v0.1.0 is already on crates.io.
 #
 # See DEVELOPMENT.md § Releasing.
 
@@ -46,7 +47,7 @@ EXPLICIT=""
 REPO_TAG_URL="https://github.com/symworx/symcourse/releases/tag"
 
 usage() {
-  sed -n '4,34p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '4,35p' "$0" | sed 's/^# \{0,1\}//'
   exit "${1:-0}"
 }
 
@@ -422,6 +423,7 @@ if [[ "$DIRECTION" == "downgrade" ]]; then
 Note: this only rewrites package metadata in the working tree.
   • Does not delete git tags, CHANGELOG history, or remote releases.
   • Safe if ${CURRENT} was never published / tagged remotely.
+  • v0.1.0 is published. Do not set the package back to 0.1.0.
   • If ${CURRENT} is already on crates.io, bump forward instead.
 
 EOF
@@ -469,7 +471,8 @@ else
   fi
   echo "  3. Commit and open a pull request against worx"
   echo "  4. After merge:  git tag -a v${NEW} -m v${NEW} && git push origin v${NEW}"
-  echo "     Publish runs on the tag, not on the merge to worx."
+  echo "     The release workflow publishes that tag to crates.io."
+  echo "     A merge to worx does not publish. v0.1.0 is already published."
 fi
 echo
 echo "Accidentally too high?  ./scripts/bump-version.sh set <lower> [--yes]"

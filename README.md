@@ -20,7 +20,7 @@ A published tag installs the same binary. The catalog and templates are embedded
 cargo install --locked symcourse
 ```
 
-`v0.1.0` is the package version. It is on crates.io only after that tag is published. Pull requests go to `worx`. See [CONTRIBUTING.md](CONTRIBUTING.md) and [DEVELOPMENT.md](DEVELOPMENT.md#releasing).
+`cargo install --locked symcourse` installs the published crate (`v0.1.0` is on crates.io). Later versions publish when a `v*` tag is pushed. Pull requests go to `worx`. See [CONTRIBUTING.md](CONTRIBUTING.md) and [DEVELOPMENT.md](DEVELOPMENT.md#releasing).
 
 ## Quick start
 
@@ -122,4 +122,4 @@ Command notes: [DEVELOPMENT.md](DEVELOPMENT.md).
 
 Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md).
 
-Copyright (c) 2026, PalEm Dynamics LLC.
+Copyright (c) 2026, Nathaniel T. Berry.
