@@ -18,7 +18,7 @@ Then open:
 - [QUICKSTART.md](QUICKSTART.md) — environment
 - [docs/](docs/) — handbook, module cards, and [docs/slos.md](docs/slos.md) as they are authored
 - [assignments/](assignments/) — graded prompts → submit on __LMS__
-- [docs/ai-what-to-expect.md](docs/ai-what-to-expect.md) — AI expectations
+- [docs/ai-what-to-expect.md](docs/ai-what-to-expect.md) — how AI use works in this course
 
 ## Repository map
 
@@ -27,10 +27,53 @@ Then open:
 | `QUICKSTART.md` | Clone, environment, smoke test |
 | `CONTRIBUTING.md` | Small materials fixes |
 | `docs/` | Handbook, modules, projects, admin notes |
-| `docs/ai-what-to-expect.md` | Student AI expectations |
-| `lectures/` | Notes and (optional) Quarto sources |
-| `assignments/` | Labs and prompts → __LMS__ |
+| `docs/slos.md` | Course outcomes, when that file has been written |
+| `docs/ai-what-to-expect.md` | Student expectations for AI use |
+| `lectures/` | Notes and optional slides, one directory per module |
+| `assignments/` | Labs and homework prompts → __LMS__ |
 | `data/` | Public sample data only |
+
+Term dates, grading weights, and point values stay on **__LMS__**.
+
+## docs/
+
+Handbook pages for the course. Open the folder that matches the question.
+
+| Path | What you will find |
+|:--|:--|
+| [`docs/modules/`](docs/modules/) | One session card per module: `module-NN.md` |
+| [`docs/projects/`](docs/projects/) | Project briefs: `project-NN.md` |
+| [`docs/admin/`](docs/admin/) | Faculty logistics. Students can skip this |
+| [`docs/slos.md`](docs/slos.md) | Outcomes list, once it has been written |
+| [`docs/ai-what-to-expect.md`](docs/ai-what-to-expect.md) | How AI use works in this course |
+
+`NN` is a zero-padded number (`00`, `01`, `02`). Each folder README says which sections belong inside its files.
+
+## lectures/
+
+Teachable notes, one directory per module. The matching session card is `docs/modules/module-NN.md`. Notes are what to study. The card is how the meeting runs.
+
+```text
+lectures/module-NN/notes.md
+lectures/module-NN/index.qmd    # optional slides
+```
+
+The index of modules is [lectures/README.md](lectures/README.md).
+
+## assignments/
+
+What to do. One file per lab or homework:
+
+```text
+assignments/lab-NN.md
+assignments/homework-NN.md
+```
+
+Submit the work on **__LMS__**. [assignments/README.md](assignments/README.md) lists the sections inside each file.
+
+## data/
+
+Public sample files only, under `data/public/`. Restricted extracts stay outside the repository. See [data/README.md](data/README.md).
 
 ## Faculty
 
