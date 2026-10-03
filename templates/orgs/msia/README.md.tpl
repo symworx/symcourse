@@ -31,11 +31,11 @@ Then open:
 |:--|:--|
 | `QUICKSTART.md` | Clone `worx`, environment, smoke test |
 | `CONTRIBUTING.md` | Small materials fixes (PRs target `worx`) |
-| `docs/` | Handbook, modules, projects, admin notes |
+| `docs/` | Handbook, modules, and admin notes |
 | `docs/slos.md` | Course outcomes, when that file has been written |
 | `docs/ai-what-to-expect.md` | Student expectations for AI use |
 | `lectures/` | Notes and optional slides, one directory per module |
-| `assignments/` | Labs and portfolio prompts → Canvas |
+| `assignments/` | Checkpoints, labs, and project prompts → Canvas |
 | `data/` | Public sample data only |
 | `Containerfile` | Reproducible runtime |
 | `.devcontainer/` | VS Code / Cursor dev container |
@@ -49,7 +49,6 @@ Handbook pages for the course.
 | Path | What you will find |
 |:--|:--|
 | [`docs/modules/`](docs/modules/) | One session card per module: `module-NN.md` |
-| [`docs/projects/`](docs/projects/) | Project briefs: `project-NN.md` |
 | [`docs/admin/`](docs/admin/) | Faculty logistics |
 | [`docs/slos.md`](docs/slos.md) | Outcomes list, once it has been written |
 | [`docs/ai-what-to-expect.md`](docs/ai-what-to-expect.md) | How AI use works in this course |
@@ -69,14 +68,15 @@ The index of modules is [lectures/README.md](lectures/README.md).
 
 ## assignments/
 
-Labs and portfolio prompts live here, one file each:
+Checkpoints, labs, and projects each have a directory:
 
 ```text
-assignments/lab-NN.md
-assignments/homework-NN.md
+assignments/checkpoints/module-NN.md
+assignments/labs/lab-NN.md
+assignments/project/midterm.md
 ```
 
-Submit the work on **Canvas**. See [assignments/README.md](assignments/README.md).
+Submit the work on **Canvas**. See [assignments/README.md](assignments/README.md). Project briefs live in [assignments/project/](assignments/project/).
 
 ## data/
 

@@ -28,13 +28,17 @@ shapes:
     description: Assignments, lectures, docs, public sample data
     dirs:
       - assignments
+      - assignments/checkpoints
+      - assignments/labs
+      - assignments/project
       - data/public
       - docs/modules
-      - docs/projects
       - docs/admin
       - lectures
     keep:
       - data/public/.gitkeep
+      - assignments/checkpoints/.gitkeep
+      - assignments/labs/.gitkeep
     files:
       - src: shapes/course/README.md.tpl
         dest: README.md
@@ -50,14 +54,14 @@ shapes:
         dest: docs/ai-what-to-expect.md
       - src: shapes/course/docs/modules/README.md.tpl
         dest: docs/modules/README.md
-      - src: shapes/course/docs/projects/README.md.tpl
-        dest: docs/projects/README.md
       - src: shapes/course/docs/admin/README.md.tpl
         dest: docs/admin/README.md
       - src: shapes/course/docs/admin/PLANNING.md.tpl
         dest: docs/admin/PLANNING.md
       - src: shapes/course/assignments/README.md.tpl
         dest: assignments/README.md
+      - src: shapes/course/assignments/project/README.md.tpl
+        dest: assignments/project/README.md
       - src: shapes/course/data/README.md.tpl
         dest: data/README.md
       - src: shapes/course/lectures/README.md.tpl

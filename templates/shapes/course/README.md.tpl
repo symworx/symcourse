@@ -26,11 +26,11 @@ Then open:
 |:--|:--|
 | `QUICKSTART.md` | Clone, environment, smoke test |
 | `CONTRIBUTING.md` | Small materials fixes |
-| `docs/` | Handbook, modules, projects, admin notes |
+| `docs/` | Handbook, modules, and admin notes |
 | `docs/slos.md` | Course outcomes, when that file has been written |
 | `docs/ai-what-to-expect.md` | Student expectations for AI use |
 | `lectures/` | Notes and optional slides, one directory per module |
-| `assignments/` | Labs and homework prompts → __LMS__ |
+| `assignments/` | Checkpoints, labs, and project prompts → __LMS__ |
 | `data/` | Public sample data only |
 
 Term dates, grading weights, and point values stay on **__LMS__**.
@@ -42,7 +42,6 @@ Handbook pages for the course. Open the folder that matches the question.
 | Path | What you will find |
 |:--|:--|
 | [`docs/modules/`](docs/modules/) | One session card per module: `module-NN.md` |
-| [`docs/projects/`](docs/projects/) | Project briefs: `project-NN.md` |
 | [`docs/admin/`](docs/admin/) | Faculty logistics. Students can skip this |
 | [`docs/slos.md`](docs/slos.md) | Outcomes list, once it has been written |
 | [`docs/ai-what-to-expect.md`](docs/ai-what-to-expect.md) | How AI use works in this course |
@@ -62,14 +61,15 @@ The index of modules is [lectures/README.md](lectures/README.md).
 
 ## assignments/
 
-What to do. One file per lab or homework:
+What to do. Checkpoints, labs, and projects each have a directory:
 
 ```text
-assignments/lab-NN.md
-assignments/homework-NN.md
+assignments/checkpoints/module-NN.md
+assignments/labs/lab-NN.md
+assignments/project/midterm.md
 ```
 
-Submit the work on **__LMS__**. [assignments/README.md](assignments/README.md) lists the sections inside each file.
+Submit the work on **__LMS__**. [assignments/README.md](assignments/README.md) describes this layout. Project briefs live in [assignments/project/](assignments/project/).
 
 ## data/
 

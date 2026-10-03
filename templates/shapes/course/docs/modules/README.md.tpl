@@ -36,7 +36,7 @@ When [`docs/slos.md`](../slos.md) exists, the objectives on the card stay aligne
 
 ## What belongs somewhere else
 
-Lecture prose and slides go in [`lectures/`](../../lectures/). Assignment prompts go in [`assignments/`](../../assignments/). Point values stay on **__LMS__**.
+Lecture prose and slides go in [`lectures/`](../../lectures/). Assignment prompts go in [`assignments/`](../../assignments/), and project briefs go in [`assignments/project/`](../../assignments/project/). Point values stay on **__LMS__**.
 
 ## Add the next module
 

@@ -83,8 +83,8 @@ Later layers override the same destination: shape → runtime → org → pages.
 ## What it writes (default)
 
 - `README.md`, `QUICKSTART.md`, `CONTRIBUTING.md`, `AGENTS.md`
-- `docs/` stubs (modules, projects, admin README/PLANNING, AI expectations)
-- `assignments/`, `lectures/` (empty `_quarto.yml`), `data/public/`
+- `docs/` stubs (modules, admin README/PLANNING, AI expectations)
+- `assignments/` (`checkpoints/`, `labs/`, `project/`), `lectures/` (empty `_quarto.yml`), `data/public/`
 - `.gitignore` (agent trees, restricted data)
 
 Not written unless you opt in: `Containerfile`, `pyproject.toml`, org

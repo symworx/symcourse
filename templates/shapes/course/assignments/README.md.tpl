@@ -12,7 +12,25 @@ how work is graded stay on **__LMS__**.
 
 ## How this folder is organized
 
-You may take a flat directory stucture or nested structure based on you preference. The flat structure may look like: 
+Use one directory per kind of work:
+
+```text
+assignments/
+  README.md
+  checkpoints/          # discussion posts or worksheets
+    module-00.md
+  labs/                 # lab instructions (no data)
+    lab-00.md
+    lab-01.md
+  project/              # midterm, final, and other project briefs
+    README.md
+    midterm.md
+    final.md
+```
+
+`module-NN.md` matches the session card `docs/modules/module-NN.md`. `lab-NN.md` is a lab. `NN` is a zero-padded number (`00`, `01`, `02`). Project briefs live in [`project/`](project/).
+
+A flat layout still works when the course has only a few files:
 
 ```text
 assignments/
@@ -20,21 +38,6 @@ assignments/
   lab-01.md
   homework-01.md
 ```
-Alternatively, subdirectories (recommended) may be formatted similar to:
-
-```text
-assignments/
-  checkponts/     # Discussion board posts or worksheets
-    module-01.md
-  labs/           # Lab documents and instuctions (no data)
-    lab-00.md
-    lab-01.md
-  project/        # Project materials/documents
-    midterm.md
-    final.md
-```
-
-`lab-NN.md` is a lab. `homework-NN.md` is a homework. `NN` is a zero-padded number. Use the name that matches the kind of work.
 
 ## How an assignment file is organized
 
@@ -49,4 +52,8 @@ Session plans go in [`docs/modules/`](../docs/modules/). Lecture notes go in [`l
 
 ## Add the next assignment
 
-Create `assignments/lab-NN.md` or `assignments/homework-NN.md` with the sections above, and name that file from the related module card.
+- Checkpoint: `assignments/checkpoints/module-NN.md`
+- Lab: `assignments/labs/lab-NN.md`
+- Project: a file under [`assignments/project/`](project/), as that README describes
+
+Use the sections above. When the work belongs to one module, use that module number in the file name.
