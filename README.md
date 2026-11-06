@@ -59,9 +59,9 @@ If `symkit` is on `PATH`, `new` then runs:
 symkit install <outdir> --harness teaching --role instructor --docs slos --yes
 ```
 
-No `--scaffold`. Layout is this tool’s job. If `symkit` is missing, the
-course tree is still written and the install command is printed.
-`--no-agents` skips the nested install.
+`--role learner` installs the student pack. No `--scaffold`. Layout is this
+tool’s job. If `symkit` is missing, the course tree is still written and the
+install command is printed. `--no-agents` skips the nested install.
 
 ## Catalog
 
@@ -77,8 +77,45 @@ org ids in the scaffolder.
 | `--lms` | `the course LMS` | Substituted as `__LMS__` (org `msia` sets Canvas unless overridden) |
 | `--github-org` | empty | Clone URLs; `msia` defaults to `uncg-msia` |
 | `--with-pages` | off | HTML study hub + Pages workflow |
+| `--role` | `instructor` | Nested `symkit` education role (`instructor` or `learner`) |
 
 Later layers override the same destination: shape → runtime → org → pages.
+
+## Lab images
+
+Ready-to-run environments under `containers/`. Each image seeds the **generic**
+course layout (no MSIA overlay), installs `symkit`, and uses uv for Python.
+Build from the repository root. Agent packs default to **learner**; pass
+`instructor` for a faculty tree.
+
+```bash
+podman build -f containers/programming-python.Containerfile \
+  -t ghcr.io/symworx/symcourse-programming-python:latest .
+podman run --rm -it -v "$PWD:/app:z" \
+  ghcr.io/symworx/symcourse-programming-python:latest
+
+podman build -f containers/data-visualization.Containerfile \
+  -t ghcr.io/symworx/symcourse-data-visualization:latest .
+podman run --rm -it -v "$PWD:/app:z" -p 8888:8888 \
+  ghcr.io/symworx/symcourse-data-visualization:latest
+
+# faculty agents (build time or start time)
+podman build --build-arg AGENT_ROLE=instructor \
+  -f containers/programming-python.Containerfile \
+  -t ghcr.io/symworx/symcourse-programming-python:instructor .
+podman run --rm -it -e AGENT_ROLE=instructor -v "$PWD:/app:z" \
+  ghcr.io/symworx/symcourse-programming-python:latest
+```
+
+| Image | Tools |
+|:--|:--|
+| `programming-python` | numpy, pandas, matplotlib, seaborn, scikit-learn, scipy, statsmodels, jupyterlab, ruff |
+| `data-visualization` | matplotlib, seaborn, plotly, altair, plotnine, jupyterlab; R with ggplot2, dplyr, plotly, IRkernel |
+
+An empty `/app` is filled from the baked-in skeleton (`assignments/`,
+`lectures/`, `docs/`, `data/public/`). Bind-mounting an existing course
+checkout leaves that tree in place. Do not commit `.agents/` or vendor
+adapter dirs.
 
 ## What it writes (default)
 

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Lab images under `containers/`: `programming-python` (Python programming and data science) and `data-visualization` (Python + R visualization). Both seed the generic course layout (no MSIA overlay), ship `symkit` and `symcourse`, and take `AGENT_ROLE=learner` (default) or `instructor`.
+- `symcourse new --role instructor|learner` (default `instructor`) for the nested `symkit install`.
+
 ## [0.2.0] - 2026-10-01
 
 ### Added

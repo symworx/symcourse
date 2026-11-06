@@ -1,0 +1,64 @@
+[project]
+name = "programming-python"
+version = "0.0.0"
+description = "Python programming and data science lab image"
+requires-python = ">=3.13"
+dependencies = [
+    "ipykernel",
+    "ipywidgets",
+    "jupyterlab",
+    "matplotlib",
+    "numpy",
+    "openpyxl",
+    "pandas",
+    "pyarrow",
+    "pydantic",
+    "pytest",
+    "requests",
+    "rich",
+    "scikit-learn",
+    "scipy",
+    "seaborn",
+    "statsmodels",
+]
+
+[dependency-groups]
+dev = [
+    "mypy",
+    "ruff",
+]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["assignments", "lectures"]
+extend-exclude = [
+    ".venv",
+    "data",
+    "docs",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "I",
+    "UP",
+]
+ignore = [
+    "E501",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+docstring-code-format = true
+
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true
+pretty = true

@@ -29,7 +29,7 @@ AI-assisted contributions are fine. You remain responsible for the result: expla
 
 ## This repository
 
-`symcourse` scaffolds course shape (layout, runtime, identity overlays). Agent packs, adapters, and `docs/slos.md` come from the org agent-harness installer (`symkit`). Do not pass `--scaffold` to `symkit` on a tree this tool created.
+`symcourse` scaffolds course shape (layout, runtime, identity overlays). Agent packs, adapters, and `docs/slos.md` come from the org agent-harness installer (`symkit`). Nested install defaults to `--role instructor`; pass `--role learner` for the student pack. Do not pass `--scaffold` to `symkit` on a tree this tool created. Lab images live in `containers/`.
 
 `catalog.yaml` lists shapes, runtimes, orgs, and presets. Add a new org by dropping identity templates under `templates/orgs/<id>/` and registering them in the catalog. Do not hardcode new ids in the scaffolder (`src/`).
 

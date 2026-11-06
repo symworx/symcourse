@@ -40,6 +40,7 @@ pub struct NewCourse {
     pub github_org: Option<String>,
     pub with_pages: bool,
     pub with_agents: bool,
+    pub role: String,
     pub adapters: Option<String>,
 }
 
@@ -98,7 +99,10 @@ pub fn scaffold(root: &Path, req: &NewCourse) -> Result<()> {
         log("Pages hub: no (pass --with-pages to include)");
     }
     if req.with_agents {
-        log("Agents: nested symkit install (pass --no-agents to skip)");
+        log(&format!(
+            "Agents: nested symkit install --role {} (pass --no-agents to skip)",
+            req.role
+        ));
     } else {
         log("Agents: no");
     }
@@ -353,7 +357,7 @@ fn install_agents(req: &NewCourse) -> Result<()> {
         "--harness".to_string(),
         "teaching".to_string(),
         "--role".to_string(),
-        "instructor".to_string(),
+        req.role.clone(),
         "--docs".to_string(),
         "slos".to_string(),
         "--yes".to_string(),
@@ -367,7 +371,10 @@ fn install_agents(req: &NewCourse) -> Result<()> {
         warn(&format!("Next: {}", argv.join(" ")));
         return Ok(());
     }
-    log("Installing teaching harness (instructor + --docs slos; no --scaffold)");
+    log(&format!(
+        "Installing teaching harness ({} + --docs slos; no --scaffold)",
+        req.role
+    ));
     let mut cmd = Command::new("symkit");
     cmd.args(&argv[1..]);
     let status = cmd.status()?;

@@ -16,7 +16,9 @@ rustup default stable
 
 `./cli/symcourse` builds `target/debug/symcourse` when that binary is missing, then runs it. Inside this checkout the binary reads `catalog.yaml` and `templates/` from the tree. A binary installed elsewhere uses the copies embedded at compile time.
 
-`git init` needs `git`. `--runtime uv` writes `uv.lock` when `uv` is on `PATH`. Nested agent install runs `symkit` when it is on `PATH`.
+`git init` needs `git`. `--runtime uv` writes `uv.lock` when `uv` is on `PATH`. Nested agent install runs `symkit` when it is on `PATH`. `--role learner` (or `instructor`, the default) is passed through to that install.
+
+Lab images (`containers/*.Containerfile`) build from the repository root. The first stage compiles `symcourse` from this checkout and installs `symkit` from crates.io (`SYMKIT_VERSION`). Python environments use uv; `data-visualization` also installs R. `AGENT_ROLE` defaults to `learner`.
 
 ## Commands
 

@@ -79,6 +79,10 @@ struct NewArgs {
     /// Skip nested `symkit install`
     #[arg(long = "no-agents")]
     no_agents: bool,
+    /// Nested symkit education role (`instructor` or `learner`). Default for `new` is instructor.
+    /// Lab images default `AGENT_ROLE` to learner.
+    #[arg(long, default_value = "instructor", value_parser = ["instructor", "learner"])]
+    role: String,
     /// Passed to nested symkit (grok, claude, codex, all, none)
     #[arg(long)]
     adapters: Option<String>,
@@ -129,6 +133,7 @@ fn run() -> Result<()> {
                     github_org: args.github_org,
                     with_pages: args.with_pages,
                     with_agents: !args.no_agents,
+                    role: args.role,
                     adapters: args.adapters,
                 },
             )

@@ -26,6 +26,10 @@ fi
 if "$CLI" new smoke-bad "$TMP/bad" --course-number X --course-title Y --shape nope >/dev/null 2>&1; then
   fail "unknown --shape must fail"
 fi
+if "$CLI" new smoke-role "$TMP/bad-role" --course-number X --course-title Y --role nope --no-agents >/dev/null 2>&1; then
+  fail "unknown --role must fail"
+fi
+"$CLI" new --help | grep -q -- '--role' || fail "new --help mentions --role"
 
 # default: generic course, no runtime, no org
 T1="$TMP/bio-101"
@@ -129,8 +133,36 @@ if command -v symkit >/dev/null 2>&1; then
   [[ -f "$T4/AGENTS-SYMKIT.md" ]] || fail "AGENTS-SYMKIT.md from nested install"
   grep -q AGENTS-SYMKIT.md "$T4/AGENTS.md" || fail "pointer on AGENTS.md"
   [[ ! -e "$T4/Containerfile" ]] || fail "nested install must not add Containerfile"
+  [[ -f "$T4/.agents/agents/instructor.md" ]] || fail "default --role instructor"
+
+  T5="$TMP/with-learner"
+  "$CLI" new with-learner "$T5" \
+    --course-number "CS 2" \
+    --course-title "Learner Course" \
+    --role learner
+  [[ -f "$T5/.agents/agents/learner.md" ]] || fail "--role learner writes learner.md"
+  [[ ! -e "$T5/.agents/agents/instructor.md" ]] || fail "--role learner must not write instructor.md"
 else
   printf 'note: symkit not on PATH; skipped nested-install checks\n'
 fi
+
+# lab images: generic layout, symkit, learner default
+for cf in containers/programming-python.Containerfile containers/data-visualization.Containerfile; do
+  [[ -f "$ROOT/$cf" ]] || fail "missing $cf"
+  grep -q 'ARG AGENT_ROLE=learner' "$ROOT/$cf" || fail "$cf default AGENT_ROLE"
+  grep -q 'symkit' "$ROOT/$cf" || fail "$cf installs symkit"
+  grep -q 'seed-course' "$ROOT/$cf" || fail "$cf seeds course layout"
+  if grep -Eqi 'preset msia|uncg-msia' "$ROOT/$cf"; then
+    fail "$cf must not use the MSIA overlay"
+  fi
+done
+grep -q 'scikit-learn' "$ROOT/containers/programming-python/pyproject.toml" || fail "programming-python sklearn"
+grep -q 'plotly' "$ROOT/containers/data-visualization/pyproject.toml" || fail "data-visualization plotly"
+grep -q 'ggplot2' "$ROOT/containers/data-visualization/install-r-packages.R" || fail "data-visualization ggplot2"
+grep -q 'AGENT_ROLE' "$ROOT/containers/scripts/install-agents.sh" || fail "install-agents role switch"
+for s in seed-course.sh install-agents.sh container-entrypoint.sh; do
+  [[ -f "$ROOT/containers/scripts/$s" ]] || fail "missing containers/scripts/$s"
+  head -n 1 "$ROOT/containers/scripts/$s" | grep -q '^#!' || fail "$s shebang"
+done
 
 printf 'OK\n'

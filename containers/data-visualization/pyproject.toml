@@ -1,0 +1,53 @@
+[project]
+name = "data-visualization"
+version = "0.0.0"
+description = "Python data visualization lab image"
+requires-python = ">=3.13"
+dependencies = [
+    "altair",
+    "ipykernel",
+    "ipywidgets",
+    "jupyterlab",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "plotnine",
+    "plotly",
+    "pyarrow",
+    "seaborn",
+]
+
+[dependency-groups]
+dev = [
+    "ruff",
+]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["assignments", "lectures"]
+extend-exclude = [
+    ".venv",
+    "data",
+    "docs",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "I",
+    "UP",
+]
+ignore = [
+    "E501",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+docstring-code-format = true
