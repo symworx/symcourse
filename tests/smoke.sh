@@ -53,6 +53,9 @@ grep -q "Intro Biology" "$T1/README.md" || fail "course-title substitution"
 grep -q "the course LMS" "$T1/assignments/README.md" || fail "generic LMS wording"
 if grep -q "uncg-msia" "$T1/README.md"; then fail "generic README must not mention uncg-msia"; fi
 if grep -q "Canvas" "$T1/README.md"; then fail "generic README must not mention Canvas"; fi
+[[ ! -e "$T1/migration-docs" ]] || fail "default must not write migration-docs"
+grep -q 'BEGIN symcourse migration-docs' "$T1/.gitignore" || fail "gitignore migration block"
+grep -q 'migration-docs/\*\*' "$T1/.gitignore" || fail "gitignore ignores migration dumps"
 
 echo keep-me >>"$T1/README.md"
 "$CLI" new bio-101 "$T1" \
@@ -60,6 +63,26 @@ echo keep-me >>"$T1/README.md"
   --course-title "Intro Biology" \
   --no-agents
 grep -q keep-me "$T1/README.md" || fail "must not clobber README"
+
+# --migration: local drop folder; nested symkit is not involved
+T_MIG="$TMP/mig-101"
+"$CLI" new mig-101 "$T_MIG" \
+  --course-number "MIG 101" \
+  --course-title "Migration" \
+  --migration \
+  --no-agents
+[[ -f "$T_MIG/migration-docs/README.md" ]] || fail "migration README"
+[[ -f "$T_MIG/migration-docs/.gitkeep" ]] || fail "migration gitkeep"
+grep -q 'Back it up somewhere else' "$T_MIG/migration-docs/README.md" || fail "migration README copy"
+grep -q 'BEGIN symcourse migration-docs' "$T_MIG/.gitignore" || fail "migration gitignore marker"
+grep -q 'migration-docs/\*\*' "$T_MIG/.gitignore" || fail "migration dumps ignored"
+printf 'syllabus.pdf\n' >>"$T_MIG/migration-docs/.gitkeep"
+"$CLI" new mig-101 "$T_MIG" \
+  --course-number "MIG 101" \
+  --course-title "Migration" \
+  --migration \
+  --no-agents
+grep -q '!migration-docs/syllabus.pdf' "$T_MIG/.gitignore" || fail "gitkeep path not un-ignored"
 
 # --lms and --github-org on generic shape
 T1b="$TMP/bio-lms"

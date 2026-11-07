@@ -70,3 +70,11 @@ tmp/
 .codex/
 .symkit/
 CLAUDE.md
+
+# BEGIN symcourse migration-docs
+# Local only. Back this directory up elsewhere.
+# Track another file by listing it in migration-docs/.gitkeep, then re-run new with --migration.
+migration-docs/**
+!migration-docs/README.md
+!migration-docs/.gitkeep
+# END symcourse migration-docs

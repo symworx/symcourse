@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `symcourse new --migration` writes `migration-docs/` for local legacy files. Dumps stay gitignored unless a path is listed in `migration-docs/.gitkeep`.
+
 ## [0.2.0] - 2026-10-01
 
 ### Added

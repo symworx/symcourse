@@ -10,6 +10,8 @@ optional overlay (`--preset msia`), not the product.
 
 From a clone, `./cli/symcourse` builds the debug binary and runs it. In this checkout the binary reads `catalog.yaml` and `templates/` from the tree.
 
+From this directory, install the binary locally:
+
 ```bash
 cargo install --locked --path .
 ```
@@ -63,6 +65,11 @@ No `--scaffold`. Layout is this tool’s job. If `symkit` is missing, the
 course tree is still written and the install command is printed.
 `--no-agents` skips the nested install.
 
+`--migration` creates `migration-docs/README.md` and `migration-docs/.gitkeep`.
+Files dropped there stay on this machine. Back them up elsewhere. To track
+one file, add its path on its own line in `.gitkeep` and run `new` again with
+`--migration`. The nested `symkit` install is not passed this flag.
+
 ## Catalog
 
 `catalog.yaml` is the source of truth. Do not hardcode shape, runtime, or
@@ -77,6 +84,7 @@ org ids in the scaffolder.
 | `--lms` | `the course LMS` | Substituted as `__LMS__` (org `msia` sets Canvas unless overridden) |
 | `--github-org` | empty | Clone URLs; `msia` defaults to `uncg-msia` |
 | `--with-pages` | off | HTML study hub + Pages workflow |
+| `--migration` | off | `migration-docs/` for local legacy files. Dumps stay gitignored |
 
 Later layers override the same destination: shape → runtime → org → pages.
 
@@ -88,8 +96,8 @@ Later layers override the same destination: shape → runtime → org → pages.
 - `.gitignore` (agent trees, restricted data)
 
 Not written unless you opt in: `Containerfile`, `pyproject.toml`, org
-`release.yml`, GitHub Pages. Do not pass `symkit --scaffold` on a tree
-this tool created.
+`release.yml`, GitHub Pages, `migration-docs/`. Do not pass
+`symkit --scaffold` on a tree this tool created.
 
 When nested `symkit` runs: `AGENTS-SYMKIT.md`, pointer on `AGENTS.md`,
 `.agents/` (gitignored), grok adapter by default, `docs/slos.md`.
