@@ -1,0 +1,22 @@
+# Copyright (c) 2026, Nathaniel T. Berry
+# Licensed under the Apache License, Version 2.0.
+#
+# Written by `symcourse create department`. Edit this copy.
+# Pass it to `symcourse new --department`.
+#
+# org and runtime are used when you do not pass --org, --runtime, or --preset.
+# org: msia selects the MSIA template pack. Those files name uncg-msia and Canvas.
+# For another department, clear org and runtime, then edit the fields below.
+# course_numbers are prefixes. ian allows the repo ian-6xx and the code IAN 6xx.
+
+version: 1
+slug: msia
+name: UNCG MSIA
+org: msia
+runtime: uv
+lms: Canvas
+github_org: uncg-msia
+github_pages_host: uncg-msia.github.io
+faculty_docs: https://github.com/uncg-msia/msia-faculty
+course_numbers:
+  - ian

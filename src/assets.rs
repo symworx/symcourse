@@ -100,8 +100,10 @@ fn ensure_embedded() -> Result<PathBuf> {
 }
 
 fn extract_embedded(dest: &Path) -> Result<()> {
-    fs::create_dir_all(dest)?;
-    EMBEDDED_TEMPLATES.extract(dest.join("templates"))?;
+    let templates = dest.join("templates");
+    // include_dir writes root files without creating `templates/` first.
+    fs::create_dir_all(&templates)?;
+    EMBEDDED_TEMPLATES.extract(&templates)?;
     fs::write(dest.join("catalog.yaml"), EMBEDDED_CATALOG)?;
     Ok(())
 }
@@ -121,5 +123,6 @@ mod tests {
             .join("templates/extras/pages/.github/workflows/pages.yml.tpl");
         assert!(release.is_file(), "missing {}", release.display());
         assert!(pages.is_file(), "missing {}", pages.display());
+        assert!(dir.path().join("templates/department.yml").is_file());
     }
 }
