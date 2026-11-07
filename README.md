@@ -53,7 +53,7 @@ cargo install --locked symcourse
 ./cli/symcourse new ian-6xx . \
   --course-number "IAN 6xx" \
   --course-title "Course title" \
-  --department department.yml
+  --department ~/.local/symcourse/department.yml
 
 # existing directory (fills missing files only):
 ./cli/symcourse new bio-101 /path/to/bio-101 \
@@ -100,10 +100,11 @@ org ids in the scaffolder.
 
 Later layers override the same destination: shape → runtime → org → pages.
 
-`symcourse departments` is the menu for `./department.yml`. In a terminal, the
-arrow keys move between `new`, `edit`, `delete`, and `quit`. Enter selects.
-`q` or Ctrl-C quits. `new` writes the file, and delete asks again before
-removing it. Without a terminal it prints the shortcuts, then exits:
+`symcourse departments` is the menu for `~/.local/symcourse/department.yml`.
+In a terminal, the arrow keys move between `new`, `edit`, `delete`, and
+`quit`. Enter selects. `q` or Ctrl-C quits. `new` writes that file, and
+delete asks again before removing it. Without a terminal it prints the
+shortcuts, then exits:
 
 ```bash
 symcourse create department [file]
@@ -111,12 +112,15 @@ symcourse edit department [file]
 symcourse delete department [file]
 ```
 
-`create department` is the shortcut for `new`. It writes `department.yml` in
-the current directory, or at `file`. It does not replace a file that is
-already there. `edit department` opens the file in `$VISUAL` or `$EDITOR`.
+`create department` is the shortcut for `new`. With no path it writes
+`~/.local/symcourse/department.yml`. A path writes that file instead, or
+`department.yml` inside a directory. It does not replace a file that is
+already there. `SYMCOURSE_DEPARTMENT` overrides the default path.
+`edit department` opens the file in `$VISUAL` or `$EDITOR`.
 `delete department` removes that file. None of them change the stock template
-in this checkout. `symcourse new` scaffolds the course and reads this file
-through `--department`.
+in this checkout.
+`symcourse new` scaffolds the course and reads this file through
+`--department`.
 
 The stock file is MSIA: `org: msia`, `runtime: uv`, and the course-number
 prefix `ian` (`ian-6xx`, `IAN 6xx`). Edit `slug`, `name`, and

@@ -28,7 +28,7 @@ use symcourse::{
     about = "Scaffold a course repository from catalog.yaml (shape + runtime + org).",
     after_help = "\
 Departments:
-  One department.yml: slug, name, org, runtime, LMS, GitHub org, and course-number prefixes.
+  ~/.local/symcourse/department.yml: slug, name, org, runtime, LMS, GitHub org, and course-number prefixes.
 
   departments         Menu for that file. Arrow keys choose new, edit, delete, or quit
   create department   Write department.yml. Shortcut for new
@@ -105,7 +105,7 @@ enum DeleteCommand {
 
 #[derive(Args)]
 struct DepartmentPathArgs {
-    /// File or directory (default: ./department.yml)
+    /// File or directory (default: ~/.local/symcourse/department.yml)
     path: Option<PathBuf>,
 }
 
@@ -239,7 +239,7 @@ fn run() -> Result<()> {
 fn department_dest(path: Option<PathBuf>) -> Result<PathBuf> {
     match path {
         Some(path) => Ok(path),
-        None => Ok(env::current_dir()?.join("department.yml")),
+        None => symcourse::departments::default_department_file(),
     }
 }
 
@@ -262,7 +262,10 @@ mod tests {
         assert!(!commands.contains("\n  create"), "{commands}");
         assert!(!commands.contains("\n  edit"), "{commands}");
         assert!(!commands.contains("\n  delete"), "{commands}");
-        assert!(departments.contains("One department.yml:"), "{departments}");
+        assert!(
+            departments.contains("~/.local/symcourse/department.yml:"),
+            "{departments}"
+        );
         assert!(
             departments.contains("\n  departments         Menu for that file."),
             "{departments}"

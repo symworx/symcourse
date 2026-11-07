@@ -4,13 +4,17 @@
 //! Menu for one `department.yml`. Arrow keys on a terminal; a line prompt otherwise.
 
 use std::{
+    env,
     io::{
         self,
         BufRead,
         IsTerminal,
         Write,
     },
-    path::Path,
+    path::{
+        Path,
+        PathBuf,
+    },
 };
 
 use crate::{
@@ -27,6 +31,29 @@ use crate::{
 };
 
 const ACTIONS: [&str; 4] = ["new", "edit", "delete", "quit"];
+
+/// Default copy written by `departments` and by `create department` with no path.
+pub fn default_department_file() -> Result<PathBuf> {
+    let override_path = env::var_os("SYMCOURSE_DEPARTMENT")
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from);
+    let home = env::var_os("HOME").map(PathBuf::from);
+    resolve_department_file(home.as_deref(), override_path.as_deref())
+}
+
+pub fn resolve_department_file(home: Option<&Path>, override_path: Option<&Path>) -> Result<PathBuf> {
+    if let Some(path) = override_path {
+        return Ok(if path.is_dir() {
+            path.join("department.yml")
+        } else {
+            path.to_path_buf()
+        });
+    }
+    let Some(home) = home.filter(|path| !path.as_os_str().is_empty()) else {
+        return Err(Error::Msg("HOME is not set; cannot find ~/.local/symcourse".into()));
+    };
+    Ok(home.join(".local/symcourse/department.yml"))
+}
 
 pub fn run(root: &Path, dest: &Path) -> Result<()> {
     let stdin_tty = io::stdin().is_terminal();
@@ -45,6 +72,8 @@ fn run_lines(
     out: &mut impl Write,
 ) -> Result<()> {
     if interactive {
+        writeln!(out, "File: {}", dest.display())?;
+        writeln!(out)?;
         writeln!(
             out,
             "Shortcuts: symcourse create department, symcourse edit department, symcourse delete department"
@@ -53,6 +82,7 @@ fn run_lines(
     }
     loop {
         if !interactive {
+            writeln!(out, "File: {}", dest.display())?;
             writeln!(out, "new:    symcourse create department")?;
             writeln!(out, "edit:   symcourse edit department")?;
             writeln!(out, "delete: symcourse delete department")?;
@@ -75,6 +105,8 @@ fn run_lines(
 fn run_arrows(root: &Path, dest: &Path) -> Result<()> {
     {
         let mut out = io::stdout();
+        writeln!(out, "File: {}", dest.display())?;
+        writeln!(out)?;
         writeln!(
             out,
             "Shortcuts: symcourse create department, symcourse edit department, symcourse delete department"
@@ -171,6 +203,7 @@ mod tests {
         let mut out = Vec::new();
         run_lines(Path::new("."), Path::new("department.yml"), false, &mut input, &mut out).unwrap();
         let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("File: department.yml\n"), "{text}");
         assert!(text.contains("new:    symcourse create department\n"), "{text}");
         assert!(text.contains("edit:   symcourse edit department\n"), "{text}");
         assert!(text.contains("delete: symcourse delete department\n"), "{text}");
@@ -204,5 +237,20 @@ mod tests {
         .unwrap();
         let text = String::from_utf8(out).unwrap();
         assert!(text.contains("error: missing template:"), "{text}");
+    }
+
+    #[test]
+    fn default_file_is_under_local_symcourse() {
+        let home = Path::new("/home/ada");
+        let path = resolve_department_file(Some(home), None).unwrap();
+        assert_eq!(path, home.join(".local/symcourse/department.yml"));
+        let file = Path::new("/no/such/department.yml");
+        let overridden = resolve_department_file(Some(home), Some(file)).unwrap();
+        assert_eq!(overridden, file);
+        let dir = tempfile::tempdir().unwrap();
+        let overridden = resolve_department_file(Some(home), Some(dir.path())).unwrap();
+        assert_eq!(overridden, dir.path().join("department.yml"));
+        let err = resolve_department_file(None, None).unwrap_err();
+        assert!(err.to_string().contains("HOME is not set"), "{err}");
     }
 }
