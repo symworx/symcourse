@@ -17,11 +17,13 @@ use std::{
 };
 
 use crate::{
+    assets::is_root,
     catalog::{
         Catalog,
         ItemKind,
         Resolve,
     },
+    department,
     error::{
         Error,
         Result,
@@ -45,7 +47,8 @@ pub struct NewCourse {
     pub with_pages: bool,
     pub with_agents: bool,
     pub adapters: Option<String>,
-    pub migration: bool,
+    pub migration_docs: bool,
+    pub department: Option<PathBuf>,
 }
 
 pub fn scaffold(root: &Path, req: &NewCourse) -> Result<()> {
@@ -65,12 +68,28 @@ pub fn scaffold(root: &Path, req: &NewCourse) -> Result<()> {
         return Err(Error::TemplatesMissing(template_dir));
     }
     let catalog = Catalog::load(&catalog_path)?;
-    let (shape, runtime, org) = catalog.apply_preset(
+    let department = req.department.as_deref().map(department::load).transpose()?;
+    if let Some(dept) = &department {
+        dept.check_course(&req.course_name, &req.course_number)?;
+    }
+    let (shape, mut runtime, mut org) = catalog.apply_preset(
         req.preset.as_deref(),
         req.shape.as_deref(),
         req.runtime.as_deref(),
         req.org.as_deref(),
     )?;
+    if let Some(dept) = &department {
+        if !flag_set(&req.org) && req.preset.is_none() {
+            if let Some(value) = &dept.org {
+                org = value.clone();
+            }
+        }
+        if !flag_set(&req.runtime) && req.preset.is_none() {
+            if let Some(value) = &dept.runtime {
+                runtime = value.clone();
+            }
+        }
+    }
     let resolved = catalog.resolve(Resolve {
         shape: &shape,
         runtime: &runtime,
@@ -90,6 +109,15 @@ pub fn scaffold(root: &Path, req: &NewCourse) -> Result<()> {
     for (key, value) in &resolved.vars {
         vars.insert(key.clone(), value.clone());
     }
+    if let Some(dept) = &department {
+        department::overlay(
+            &mut vars,
+            dept,
+            &req.course_name,
+            flag_set(&req.lms),
+            flag_set(&req.github_org),
+        );
+    }
 
     log(&format!("Scaffolding {} — {}", req.course_number, req.course_title));
     log(&format!("Destination: {}", req.outdir.display()));
@@ -106,6 +134,14 @@ pub fn scaffold(root: &Path, req: &NewCourse) -> Result<()> {
         log("Agents: nested symkit install (pass --no-agents to skip)");
     } else {
         log("Agents: no");
+    }
+    if let (Some(dept), Some(path)) = (&department, req.department.as_deref()) {
+        log(&format!(
+            "Department: {} ({}) from {}",
+            dept.slug,
+            dept.course_numbers.join(", "),
+            path.display()
+        ));
     }
 
     let mut created = 0u32;
@@ -147,8 +183,10 @@ pub fn scaffold(root: &Path, req: &NewCourse) -> Result<()> {
         }
     }
 
-    if req.migration {
+    if req.migration_docs {
         write_migration(&template_dir, &req.outdir, &mut created, &mut skipped)?;
+    } else {
+        log("migration-docs: skipped (--no-migration-docs)");
     }
 
     let pages_script = req.outdir.join("scripts/build-pages.sh");
@@ -182,6 +220,101 @@ pub fn scaffold(root: &Path, req: &NewCourse) -> Result<()> {
     log("Do not commit .agents/ / .grok/ / .claude/ / .codex/.");
     log("Published SLOs: docs/slos.md (from nested symkit --docs slos).");
     Ok(())
+}
+
+pub fn create_department(root: &Path, dest: &Path) -> Result<PathBuf> {
+    let src = root.join("templates/department.yml");
+    if !src.is_file() {
+        return Err(Error::MissingTemplate(src.display().to_string()));
+    }
+    let dest = department_file(dest);
+    if let Some(parent) = dest.parent() {
+        if !parent.as_os_str().is_empty() && parent.exists() && is_root(parent) {
+            let shown = fs::canonicalize(parent).unwrap_or_else(|_| parent.to_path_buf());
+            return Err(Error::KitRoot(shown));
+        }
+        if !parent.as_os_str().is_empty() {
+            fs::create_dir_all(parent)?;
+        }
+    }
+    refuse_stock_department(root, &dest)?;
+    if dest.exists() {
+        log(&format!("skip (exists): {}", dest.display()));
+        log("department.yml was not replaced. Edit it with `symcourse edit department`, then pass --department.");
+        return Ok(dest);
+    }
+    fs::copy(&src, &dest)?;
+    log(&format!("created: {}", dest.display()));
+    log("Edit slug, name, org, runtime, and course_numbers.");
+    log(&format!(
+        "Then: symcourse new <name> . --course-number \"...\" --course-title \"...\" --department {}",
+        dest.display()
+    ));
+    Ok(dest)
+}
+
+pub fn edit_department(root: &Path, dest: &Path) -> Result<()> {
+    let editor = std::env::var("VISUAL")
+        .ok()
+        .filter(|value| !value.is_empty())
+        .or_else(|| std::env::var("EDITOR").ok().filter(|value| !value.is_empty()));
+    edit_department_with(root, dest, editor.as_deref())
+}
+
+fn edit_department_with(root: &Path, dest: &Path, editor: Option<&str>) -> Result<()> {
+    let dest = department_file(dest);
+    if !dest.is_file() {
+        return Err(Error::DepartmentMissing(dest));
+    }
+    refuse_stock_department(root, &dest)?;
+    let Some(editor) = editor.filter(|value| !value.is_empty()) else {
+        log(&format!(
+            "No VISUAL or EDITOR. Edit {} then pass --department.",
+            dest.display()
+        ));
+        return Ok(());
+    };
+    let status = Command::new(editor).arg(&dest).status()?;
+    if !status.success() {
+        return Err(Error::Msg(format!("editor failed ({status})")));
+    }
+    log(&format!("edited: {}", dest.display()));
+    Ok(())
+}
+
+pub fn delete_department(root: &Path, dest: &Path) -> Result<()> {
+    let dest = department_file(dest);
+    if !dest.is_file() {
+        return Err(Error::DepartmentMissing(dest));
+    }
+    refuse_stock_department(root, &dest)?;
+    fs::remove_file(&dest)?;
+    log(&format!("deleted: {}", dest.display()));
+    Ok(())
+}
+
+fn department_file(dest: &Path) -> PathBuf {
+    if dest.is_dir() {
+        dest.join("department.yml")
+    } else {
+        dest.to_path_buf()
+    }
+}
+
+fn refuse_stock_department(root: &Path, dest: &Path) -> Result<()> {
+    let stock = root.join("templates/department.yml");
+    let dest_canon = fs::canonicalize(dest).unwrap_or_else(|_| dest.to_path_buf());
+    let stock_canon = fs::canonicalize(&stock).unwrap_or(stock);
+    if dest_canon == stock_canon {
+        return Err(Error::Msg(
+            "refusing to change the stock department template; `symcourse create department` writes a copy".into(),
+        ));
+    }
+    Ok(())
+}
+
+fn flag_set(value: &Option<String>) -> bool {
+    value.as_deref().is_some_and(|text| !text.is_empty())
 }
 
 fn valid_course_name(name: &str) -> bool {
@@ -397,7 +530,7 @@ fn migration_block(extras: &[String]) -> String {
     let mut lines = vec![
         MIG_BEGIN.to_string(),
         "# Local only. Back this directory up elsewhere.".to_string(),
-        "# Track another file by listing it in migration-docs/.gitkeep, then re-run new with --migration.".to_string(),
+        "# Track another file by listing it in migration-docs/.gitkeep, then re-run new.".to_string(),
         "migration-docs/**".to_string(),
         "!migration-docs/README.md".to_string(),
         "!migration-docs/.gitkeep".to_string(),
@@ -589,27 +722,158 @@ mod tests {
             with_pages: false,
             with_agents: false,
             adapters: None,
-            migration: false,
+            migration_docs: true,
+            department: None,
         }
     }
 
     #[test]
-    fn default_new_leaves_migration_docs_unwritten() {
+    fn department_file_selects_msia_and_rejects_other_numbers() {
+        let tmp = tempfile::tempdir().unwrap();
+        let out = tmp.path().join("ian-6xx");
+        let mut req = new_req(out.clone(), "ian-6xx");
+        req.course_number = "IAN 6xx".to_string();
+        req.course_title = "Course title".to_string();
+        req.runtime = None;
+        req.department = Some(kit().join("templates/department.yml"));
+        req.migration_docs = false;
+        scaffold(&kit(), &req).unwrap();
+        let readme = fs::read_to_string(out.join("README.md")).unwrap();
+        assert!(readme.contains("uncg-msia/ian-6xx"), "{readme}");
+        assert!(out.join("Containerfile").is_file());
+        assert!(out.join(".github/workflows/release.yml").is_file());
+
+        let bad = tmp.path().join("bio-101");
+        let mut rejected = new_req(bad, "bio-101");
+        rejected.runtime = None;
+        rejected.department = Some(kit().join("templates/department.yml"));
+        let err = scaffold(&kit(), &rejected).unwrap_err();
+        assert!(err.to_string().contains("ian"), "{err}");
+    }
+
+    #[test]
+    fn department_without_org_overlays_generic_templates() {
+        let tmp = tempfile::tempdir().unwrap();
+        let file = tmp.path().join("department.yml");
+        fs::write(
+            &file,
+            "version: 1\nslug: bio\nname: Biology\nlms: Moodle\ngithub_org: example-edu\ncourse_numbers:\n  - bio\n",
+        )
+        .unwrap();
+        let out = tmp.path().join("bio-101");
+        let mut req = new_req(out.clone(), "bio-101");
+        req.runtime = None;
+        req.department = Some(file);
+        req.migration_docs = false;
+        scaffold(&kit(), &req).unwrap();
+        let readme = fs::read_to_string(out.join("README.md")).unwrap();
+        assert!(readme.contains("Moodle"), "{readme}");
+        assert!(readme.contains("github.com/example-edu/bio-101"), "{readme}");
+        assert!(!out.join("Containerfile").exists());
+        assert!(!out.join(".github/workflows/release.yml").exists());
+    }
+
+    #[test]
+    fn explicit_runtime_overrides_department_and_create_does_not_replace() {
+        let tmp = tempfile::tempdir().unwrap();
+        let created = create_department(&kit(), tmp.path()).unwrap();
+        assert_eq!(created, tmp.path().join("department.yml"));
+        let first = fs::read_to_string(&created).unwrap();
+        assert!(first.contains("slug: msia"), "{first}");
+        fs::write(&created, first.replace("slug: msia", "slug: edited")).unwrap();
+        create_department(&kit(), &created).unwrap();
+        let second = fs::read_to_string(&created).unwrap();
+        assert!(second.contains("slug: edited"), "{second}");
+        let err = create_department(&kit(), &kit().join("department.yml")).unwrap_err();
+        assert!(err.to_string().contains("symcourse checkout"), "{err}");
+
+        let out = tmp.path().join("ian-6xx");
+        let mut req = new_req(out.clone(), "ian-6xx");
+        req.course_number = "IAN 6xx".to_string();
+        req.course_title = "Course title".to_string();
+        req.runtime = Some("none".to_string());
+        req.department = Some(kit().join("templates/department.yml"));
+        req.migration_docs = false;
+        scaffold(&kit(), &req).unwrap();
+        assert!(!out.join("Containerfile").exists());
+        assert!(out.join(".github/workflows/release.yml").is_file());
+    }
+
+    #[test]
+    fn edit_and_delete_a_department_copy() {
+        let tmp = tempfile::tempdir().unwrap();
+        let created = create_department(&kit(), tmp.path()).unwrap();
+        let editor = tmp.path().join("editor.sh");
+        fs::write(&editor, "#!/bin/sh\nprintf '\\n# edited\\n' >> \"$1\"\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = fs::metadata(&editor).unwrap().permissions();
+            perms.set_mode(0o755);
+            fs::set_permissions(&editor, perms).unwrap();
+        }
+        edit_department_with(&kit(), &created, Some(editor.to_str().unwrap())).unwrap();
+        let text = fs::read_to_string(&created).unwrap();
+        assert!(text.contains("# edited"), "{text}");
+
+        delete_department(&kit(), &created).unwrap();
+        assert!(!created.exists());
+        let err = delete_department(&kit(), &created).unwrap_err();
+        assert!(err.to_string().contains("not found"), "{err}");
+
+        let err = edit_department_with(&kit(), &kit().join("templates/department.yml"), Some("/bin/true")).unwrap_err();
+        assert!(err.to_string().contains("stock department template"), "{err}");
+        let err = delete_department(&kit(), &kit().join("templates/department.yml")).unwrap_err();
+        assert!(err.to_string().contains("stock department template"), "{err}");
+    }
+
+    #[test]
+    fn default_new_writes_migration_docs() {
         let tmp = tempfile::tempdir().unwrap();
         let out = tmp.path().join("bio-101");
         scaffold(&kit(), &new_req(out.clone(), "bio-101")).unwrap();
-        assert!(!out.join("migration-docs").exists());
+        assert!(out.join("migration-docs/README.md").is_file());
+        assert!(out.join("migration-docs/.gitkeep").is_file());
         let gitignore = fs::read_to_string(out.join(".gitignore")).unwrap();
         assert_eq!(gitignore.matches(MIG_BEGIN).count(), 1, "{gitignore}");
         assert!(gitignore.contains("migration-docs/**"), "{gitignore}");
     }
 
     #[test]
-    fn migration_tracks_a_path_listed_in_gitkeep() {
+    fn no_migration_docs_skips_create_and_refresh() {
         let tmp = tempfile::tempdir().unwrap();
         let out = tmp.path().join("bio-101");
         let mut req = new_req(out.clone(), "bio-101");
-        req.migration = true;
+        req.migration_docs = false;
+        scaffold(&kit(), &req).unwrap();
+        assert!(!out.join("migration-docs").exists());
+        let gitignore = fs::read_to_string(out.join(".gitignore")).unwrap();
+        assert_eq!(gitignore.matches(MIG_BEGIN).count(), 1, "{gitignore}");
+        assert!(gitignore.contains("migration-docs/**"), "{gitignore}");
+
+        req.migration_docs = true;
+        scaffold(&kit(), &req).unwrap();
+        assert!(out.join("migration-docs/README.md").is_file());
+        let mut keep = fs::read_to_string(out.join("migration-docs/.gitkeep")).unwrap();
+        keep.push_str("syllabus.pdf\n");
+        fs::write(out.join("migration-docs/.gitkeep"), keep).unwrap();
+        req.migration_docs = false;
+        scaffold(&kit(), &req).unwrap();
+        let gitignore = fs::read_to_string(out.join(".gitignore")).unwrap();
+        assert!(!gitignore.contains("!migration-docs/syllabus.pdf"), "{gitignore}");
+        assert!(out.join("migration-docs/README.md").is_file());
+
+        req.migration_docs = true;
+        scaffold(&kit(), &req).unwrap();
+        let gitignore = fs::read_to_string(out.join(".gitignore")).unwrap();
+        assert!(gitignore.contains("!migration-docs/syllabus.pdf"), "{gitignore}");
+    }
+
+    #[test]
+    fn migration_tracks_a_path_listed_in_gitkeep() {
+        let tmp = tempfile::tempdir().unwrap();
+        let out = tmp.path().join("bio-101");
+        let req = new_req(out.clone(), "bio-101");
         scaffold(&kit(), &req).unwrap();
         assert!(out.join("migration-docs/README.md").is_file());
         let readme = fs::read_to_string(out.join("migration-docs/README.md")).unwrap();

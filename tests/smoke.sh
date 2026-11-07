@@ -19,6 +19,40 @@ trap 'rm -rf "$TMP"' EXIT
 "$CLI" list | grep -q 'shape    course' || fail "list defaults"
 "$CLI" list | grep -q 'preset' || true
 "$CLI" list | grep -q 'msia' || fail "list msia"
+"$CLI" list | grep -q 'Departments: symcourse departments' || fail "list departments"
+"$CLI" help | grep -q 'create department' || fail "help create department"
+"$CLI" help | grep -q 'edit department' || fail "help edit department"
+"$CLI" help | grep -q 'delete department' || fail "help delete department"
+"$CLI" departments | grep -q 'new:    symcourse create department' || fail "departments menu create"
+"$CLI" departments | grep -q 'edit:   symcourse edit department' || fail "departments menu edit"
+"$CLI" departments | grep -q 'delete: symcourse delete department' || fail "departments menu delete"
+"$CLI" create --help | grep -q department || fail "create lists department"
+"$CLI" edit --help | grep -q department || fail "edit lists department"
+"$CLI" delete --help | grep -q department || fail "delete lists department"
+if "$CLI" new --help | grep -q 'new department'; then
+  fail "new must scaffold a course, not a department file"
+fi
+
+"$CLI" create department "$TMP/department.yml"
+grep -q 'slug: msia' "$TMP/department.yml" || fail "create department template"
+grep -q -- '- ian' "$TMP/department.yml" || fail "create department course numbers"
+"$CLI" create department "$TMP/department.yml"
+grep -q 'slug: msia' "$TMP/department.yml" || fail "create department must not replace"
+EDIT="$TMP/mark-edit.sh"
+printf '%s\n' '#!/bin/sh' 'printf "\n# edited\n" >> "$1"' >"$EDIT"
+chmod +x "$EDIT"
+VISUAL="$EDIT" "$CLI" edit department "$TMP/department.yml"
+grep -q '# edited' "$TMP/department.yml" || fail "edit department did not run VISUAL"
+"$CLI" create department "$TMP/to-delete.yml"
+"$CLI" delete department "$TMP/to-delete.yml"
+[[ ! -e "$TMP/to-delete.yml" ]] || fail "delete department left the file"
+if "$CLI" new bio-101 "$TMP/bad-dept" \
+  --course-number "BIO 101" \
+  --course-title "Not IAN" \
+  --department "$TMP/department.yml" \
+  --no-agents >/dev/null 2>&1; then
+  fail "department file must reject a course number outside its list"
+fi
 
 if "$CLI" new smoke-bad "$TMP/bad" >/dev/null 2>&1; then
   fail "new without --course-number/--course-title must fail"
@@ -53,36 +87,41 @@ grep -q "Intro Biology" "$T1/README.md" || fail "course-title substitution"
 grep -q "the course LMS" "$T1/assignments/README.md" || fail "generic LMS wording"
 if grep -q "uncg-msia" "$T1/README.md"; then fail "generic README must not mention uncg-msia"; fi
 if grep -q "Canvas" "$T1/README.md"; then fail "generic README must not mention Canvas"; fi
-[[ ! -e "$T1/migration-docs" ]] || fail "default must not write migration-docs"
+[[ -f "$T1/migration-docs/README.md" ]] || fail "default migration README"
+[[ -f "$T1/migration-docs/.gitkeep" ]] || fail "default migration gitkeep"
+grep -q 'Back it up somewhere else' "$T1/migration-docs/README.md" || fail "migration README copy"
 grep -q 'BEGIN symcourse migration-docs' "$T1/.gitignore" || fail "gitignore migration block"
 grep -q 'migration-docs/\*\*' "$T1/.gitignore" || fail "gitignore ignores migration dumps"
 
 echo keep-me >>"$T1/README.md"
+printf 'syllabus.pdf\n' >>"$T1/migration-docs/.gitkeep"
 "$CLI" new bio-101 "$T1" \
   --course-number "BIO 101" \
   --course-title "Intro Biology" \
   --no-agents
 grep -q keep-me "$T1/README.md" || fail "must not clobber README"
+grep -q '!migration-docs/syllabus.pdf' "$T1/.gitignore" || fail "gitkeep path not un-ignored"
 
-# --migration: local drop folder; nested symkit is not involved
-T_MIG="$TMP/mig-101"
-"$CLI" new mig-101 "$T_MIG" \
-  --course-number "MIG 101" \
-  --course-title "Migration" \
-  --migration \
+# --no-migration-docs skips the directory and does not refresh exceptions
+T_OFF="$TMP/off-101"
+"$CLI" new off-101 "$T_OFF" \
+  --course-number "OFF 101" \
+  --course-title "No Migration" \
+  --no-migration-docs \
   --no-agents
-[[ -f "$T_MIG/migration-docs/README.md" ]] || fail "migration README"
-[[ -f "$T_MIG/migration-docs/.gitkeep" ]] || fail "migration gitkeep"
-grep -q 'Back it up somewhere else' "$T_MIG/migration-docs/README.md" || fail "migration README copy"
-grep -q 'BEGIN symcourse migration-docs' "$T_MIG/.gitignore" || fail "migration gitignore marker"
-grep -q 'migration-docs/\*\*' "$T_MIG/.gitignore" || fail "migration dumps ignored"
-printf 'syllabus.pdf\n' >>"$T_MIG/migration-docs/.gitkeep"
-"$CLI" new mig-101 "$T_MIG" \
-  --course-number "MIG 101" \
-  --course-title "Migration" \
-  --migration \
+[[ ! -e "$T_OFF/migration-docs" ]] || fail "--no-migration-docs must not write migration-docs"
+grep -q 'BEGIN symcourse migration-docs' "$T_OFF/.gitignore" || fail "gitignore migration block without the directory"
+grep -q 'migration-docs/\*\*' "$T_OFF/.gitignore" || fail "gitignore ignores migration dumps"
+printf 'extra.pdf\n' >>"$T1/migration-docs/.gitkeep"
+"$CLI" new bio-101 "$T1" \
+  --course-number "BIO 101" \
+  --course-title "Intro Biology" \
+  --no-migration-docs \
   --no-agents
-grep -q '!migration-docs/syllabus.pdf' "$T_MIG/.gitignore" || fail "gitkeep path not un-ignored"
+if grep -q '!migration-docs/extra.pdf' "$T1/.gitignore"; then
+  fail "--no-migration-docs must not refresh gitkeep exceptions"
+fi
+[[ -f "$T1/migration-docs/README.md" ]] || fail "--no-migration-docs must not delete migration-docs"
 
 # --lms and --github-org on generic shape
 T1b="$TMP/bio-lms"
@@ -140,6 +179,18 @@ if grep -q develop "$T3/CONTRIBUTING.md" "$T3/README.md" "$T3/AGENTS.md" "$T3/QU
   fail "msia course docs must not name develop"
 fi
 grep -q 'worx' "$T3/CONTRIBUTING.md" || fail "msia CONTRIBUTING targets worx"
+
+# department file: MSIA pack plus the ian course-number check
+T_DEPT="$TMP/ian-dept"
+"$CLI" new ian-dept "$T_DEPT" \
+  --course-number "IAN 424" \
+  --course-title "Department Course" \
+  --department "$TMP/department.yml" \
+  --no-agents
+[[ -f "$T_DEPT/Containerfile" ]] || fail "department runtime uv"
+[[ -f "$T_DEPT/.github/workflows/release.yml" ]] || fail "department msia release workflow"
+grep -q "uncg-msia/ian-dept" "$T_DEPT/README.md" || fail "department README org"
+grep -q "Canvas" "$T_DEPT/QUICKSTART.md" || fail "department QUICKSTART Canvas"
 grep -q 'branches: \[worx, main\]' "$T2/.github/workflows/pages.yml" || fail "pages workflow branches"
 
 if command -v symkit >/dev/null 2>&1; then

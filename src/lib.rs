@@ -5,5 +5,8 @@
 
 pub mod assets;
 pub mod catalog;
+pub mod department;
+pub mod departments;
 pub mod error;
 pub mod scaffold;
+pub mod term_menu;

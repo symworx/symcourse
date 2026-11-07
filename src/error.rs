@@ -29,8 +29,21 @@ pub enum Error {
     MissingCourseNumber,
     #[error("--course-title (or --title) is required")]
     MissingCourseTitle,
+    #[error("refusing to write inside the symcourse checkout: {0}")]
+    KitRoot(PathBuf),
     #[error("missing template: {0}")]
     MissingTemplate(String),
+    #[error("department file not found: {0}")]
+    DepartmentMissing(PathBuf),
+    #[error("{path}: {message}")]
+    DepartmentInvalid { path: PathBuf, message: String },
+    #[error("course '{name}' ({number}) is not a {slug} course number ({allowed})")]
+    CourseNumberRejected {
+        name: String,
+        number: String,
+        slug: String,
+        allowed: String,
+    },
     #[error("{0}")]
     Io(#[from] std::io::Error),
     #[error("catalog.yaml: {0}")]
