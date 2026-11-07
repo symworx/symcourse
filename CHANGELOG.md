@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `symcourse new` writes `migration-docs/` for local legacy files. `--no-migration-docs` skips the directory and does not refresh `.gitkeep` exceptions. Dumps stay gitignored unless a path is listed in `migration-docs/.gitkeep`.
+- `symcourse help` groups `departments`, `create department`, `edit department`, and `delete department` in one section. `symcourse departments` uses the arrow keys for `new`, `edit`, `delete`, and `quit`. Enter selects. `q` or Ctrl-C quits. Without a terminal it prints the shortcuts and exits. `create department` writes `~/.local/symcourse/department.yml` unless a path or `SYMCOURSE_DEPARTMENT` is set. `edit department` opens it in `$VISUAL` or `$EDITOR`, and `delete department` removes it. The stock file is MSIA (`org: msia`, `runtime: uv`) and accepts the course-number prefix `ian`. `new --department <file>` checks the course name and course number, and fills org, runtime, LMS, and GitHub org when those flags are omitted.
+
 ## [0.2.0] - 2026-10-01
 
 ### Added

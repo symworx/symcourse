@@ -274,45 +274,16 @@ impl Catalog {
         } else {
             github_org.to_string()
         };
-        vars.insert("GITHUB_ORG".to_string(), ghorg.clone());
+        vars.insert("GITHUB_ORG".to_string(), ghorg);
         for (key, value) in org_vars {
             if key == "LMS" || key == "GITHUB_ORG" {
                 continue;
             }
             vars.insert(key.clone(), value.clone().unwrap_or_default());
         }
-
-        if !ghorg.is_empty() {
-            vars.insert(
-                "CLONE_SNIPPET".to_string(),
-                format!("git clone https://github.com/{ghorg}/{}.git", req.course_name),
-            );
-            vars.insert(
-                "REPO_WEB".to_string(),
-                format!("https://github.com/{ghorg}/{}", req.course_name),
-            );
-            let host = vars
-                .get("GITHUB_PAGES_HOST")
-                .filter(|h| !h.is_empty())
-                .cloned()
-                .unwrap_or_else(|| format!("{ghorg}.github.io"));
-            vars.insert("PAGES_URL".to_string(), format!("https://{host}/{}/", req.course_name));
-            vars.insert(
-                "GITHUB_REPOSITORY_DEFAULT".to_string(),
-                format!("{ghorg}/{}", req.course_name),
-            );
-        } else {
-            vars.insert("CLONE_SNIPPET".to_string(), "git clone <repository-url>".to_string());
-            vars.insert("REPO_WEB".to_string(), "the course repository".to_string());
-            vars.insert("PAGES_URL".to_string(), "(GitHub Pages URL once enabled)".to_string());
-            vars.insert(
-                "GITHUB_REPOSITORY_DEFAULT".to_string(),
-                format!("YOUR_ORG/{}", req.course_name),
-            );
-            vars.entry("GITHUB_PAGES_HOST".to_string()).or_default();
-        }
         vars.entry("FACULTY_DOCS".to_string()).or_default();
         vars.entry("GITHUB_PAGES_HOST".to_string()).or_default();
+        fill_repo_urls(&mut vars, req.course_name);
 
         Ok(Resolved {
             shape: req.shape.to_string(),
@@ -323,6 +294,39 @@ impl Catalog {
             vars,
         })
     }
+}
+
+pub fn fill_repo_urls(vars: &mut BTreeMap<String, String>, course_name: &str) {
+    let ghorg = vars.get("GITHUB_ORG").cloned().unwrap_or_default();
+    if ghorg.is_empty() {
+        vars.insert("CLONE_SNIPPET".to_string(), "git clone <repository-url>".to_string());
+        vars.insert("REPO_WEB".to_string(), "the course repository".to_string());
+        vars.insert("PAGES_URL".to_string(), "(GitHub Pages URL once enabled)".to_string());
+        vars.insert(
+            "GITHUB_REPOSITORY_DEFAULT".to_string(),
+            format!("YOUR_ORG/{course_name}"),
+        );
+        vars.entry("GITHUB_PAGES_HOST".to_string()).or_default();
+        return;
+    }
+    vars.insert(
+        "CLONE_SNIPPET".to_string(),
+        format!("git clone https://github.com/{ghorg}/{course_name}.git"),
+    );
+    vars.insert(
+        "REPO_WEB".to_string(),
+        format!("https://github.com/{ghorg}/{course_name}"),
+    );
+    let host = vars
+        .get("GITHUB_PAGES_HOST")
+        .filter(|host| !host.is_empty())
+        .cloned()
+        .unwrap_or_else(|| format!("{ghorg}.github.io"));
+    vars.insert("PAGES_URL".to_string(), format!("https://{host}/{course_name}/"));
+    vars.insert(
+        "GITHUB_REPOSITORY_DEFAULT".to_string(),
+        format!("{ghorg}/{course_name}"),
+    );
 }
 
 fn blank_to_none(value: Option<&str>) -> Option<&str> {

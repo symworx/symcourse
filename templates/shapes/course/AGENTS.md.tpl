@@ -24,6 +24,7 @@ placeholder, ask.
 
 - **Never** commit credentialed, DUA-restricted, clinical, or personally
   identifiable data.
+- `migration-docs/` holds local legacy dumps. It is not a source of truth.
 - Public, redistributable samples only under paths like `data/public/`.
 - Do not invent syllabus dates, grading weights, student records, or
   institutional policy.
